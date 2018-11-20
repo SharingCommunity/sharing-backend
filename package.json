@@ -12,5 +12,12 @@
     "real-time"
   ],
   "author": "@leankhan",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.5",
+    "dotenv": "^6.1.0",
+    "mongoose": "^5.3.12",
+    "socket.io": "^2.1.1"
+  }
 }
