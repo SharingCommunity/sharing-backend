@@ -2,11 +2,13 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const cors = require("cors");
+const bodyparser = require("body-parser");
 const socket = require("socket.io");
 const server = require("http").Server(app);
 
 require("dotenv").config();
 app.use(cors());
+app.use(bodyparser.json());
 
 const port = process.env.DEV_PORT;
 const host = process.env.DEV_HOST;
