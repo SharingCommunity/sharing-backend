@@ -23,7 +23,7 @@ module.exports = {
     });
   },
   router: post_router.get("/", async (req, res) => {
-    let posts = await Post.find({}, { lean: true });
+    let posts = await Post.find({});
     res.send(posts);
   })
 };

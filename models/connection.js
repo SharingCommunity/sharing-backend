@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+// const Post = require("./post");
 
 const Schema = mongoose.Schema;
 
@@ -18,4 +19,8 @@ const ConnectionSchema = new Schema({
   created: Date
 });
 
-module.exports = mongoose.model("Connection", ConnectionSchema, "Connections");
+module.exports = Connection = mongoose.model(
+  "Connection",
+  ConnectionSchema,
+  "Connections"
+);
