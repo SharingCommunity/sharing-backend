@@ -1,9 +1,10 @@
-const Post = require("./models/post");
+const Post = require("../models/post");
 const post_router = require("express").Router();
 
 module.exports = {
   listener: function(socket) {
     console.log("New Socket Connected at " + socket.id);
+    console.log("Handshake, " + socket.handshake.session);
     socket.on("post", function(post) {
       post.created = new Date();
 
@@ -22,8 +23,10 @@ module.exports = {
       //   });
     });
   },
-  router: post_router.get("/", async (req, res) => {
-    let posts = await Post.find({});
-    res.send(posts);
-  })
+  router: post_router
 };
+
+post_router.get("/", async (req, res) => {
+  let posts = await Post.find({});
+  res.send(posts);
+});
