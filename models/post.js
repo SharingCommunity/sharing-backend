@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Connection = require("./connection.js");
+const events = require("../utils/events");
 
 const Schema = mongoose.Schema;
 
@@ -48,12 +49,13 @@ PostSchema.pre("save", function(next) {
           connection.save(function(err, con) {
             Post.updateMany(
               { _id: { $in: [con.requested, con.offered] } },
-              { $set: { "connections.0": con._id } },
+              { $set: { "connections.0": con } },
               (err, out) => {
                 if (err) console.log(err);
                 console.log(out);
               }
             );
+            events.connectionEvents.emit("new_connection", con);
           });
           console.log("From Backend", doc);
         }
@@ -81,12 +83,13 @@ PostSchema.pre("save", function(next) {
           connection.save((err, con) => {
             Post.updateMany(
               { _id: { $in: [con.requested, con.offered] } },
-              { $set: { "connections.0": con._id } },
+              { $set: { "connections.0": con } },
               (err, out) => {
                 if (err) console.log(err);
                 console.log(out);
               }
             );
+            events.connectionEvents.emit("new_connection", con);
           });
         }
       }
@@ -94,18 +97,5 @@ PostSchema.pre("save", function(next) {
     return next();
   }
 });
-
-// PostSchema.post("save",function(err,docs,next){
-//   connection.save((err,con)=>{
-//     Post.updateMany(
-//       { _id: { $in: [con.requested, con.offered] } },
-//       { $set: { "connections.0": self._id } },
-//       (err, out) => {
-//         if (err) console.log(err);
-//         console.log(out);
-//       }
-//     );
-//   });
-// })
 
 module.exports = Post = mongoose.model("Post", PostSchema, "Posts");

@@ -5,7 +5,9 @@ const cors = require("cors");
 const bodyparser = require("body-parser");
 const socket = require("socket.io");
 const server = require("http").Server(app);
-const controllers = require("./posts.js");
+const posts = require("./controllers/posts.js");
+const chats = require("./controllers/chats.js");
+const connections = require("./controllers/connections.js");
 const mongoose = require("mongoose");
 
 require("dotenv").config();
@@ -19,7 +21,8 @@ const stage = process.env.NODE_ENV;
 const keys = require("./config/mode.js");
 
 app.use("/public", express.static(path.join(__dirname, "public")));
-app.use("/posts", controllers.router);
+app.use("/posts", posts.router);
+app.use("/chats", chats.router);
 
 // MongoDB set up
 mongoose.connect(
@@ -39,7 +42,14 @@ mongoose.connection.once("open", () => {
 
 io = socket(server);
 
-io.on("connection", controllers.listener);
+// For Posts stuff
+io.on("connection", posts.listener);
+
+// For Chat stuff
+io.on("connection", chats.listener);
+
+// For Connections stuff
+io.on("connection", connections.listener);
 
 server.listen(port, host, function() {
   console.log(`App listening on ${host}:${port}`);
