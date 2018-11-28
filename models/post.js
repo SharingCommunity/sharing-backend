@@ -23,6 +23,10 @@ const PostSchema = new Schema({
   connections: {
     type: Array
   },
+  user: {
+    type: String,
+    required: true
+  },
   created: {
     type: Date
   }
@@ -47,17 +51,21 @@ PostSchema.pre("save", function(next) {
             created: new Date()
           });
           connection.save(function(err, con) {
-            Post.updateMany(
-              { _id: { $in: [con.requested, con.offered] } },
-              { $set: { "connections.0": con } },
-              (err, out) => {
-                if (err) console.log(err);
-                console.log(out);
-              }
-            );
-            events.connectionEvents.emit("new_connection", con);
+            if (err) {
+              console.error(err);
+            } else {
+              Post.updateMany(
+                { _id: { $in: [con.requested, con.offered] } },
+                { $set: { "connections.0": con } },
+                (err, out) => {
+                  if (err) console.log(err);
+                  console.log(out);
+                }
+              );
+              events.connectionEvents.emit("new_connection", con);
+            }
           });
-          console.log("From Backend", doc);
+          // console.log("From Backend", doc);
         }
       }
     );
@@ -79,17 +87,21 @@ PostSchema.pre("save", function(next) {
             offered: self._id,
             created: new Date()
           });
-          console.log("From Backend", doc);
+          // console.log("From Backend", doc);
           connection.save((err, con) => {
-            Post.updateMany(
-              { _id: { $in: [con.requested, con.offered] } },
-              { $set: { "connections.0": con } },
-              (err, out) => {
-                if (err) console.log(err);
-                console.log(out);
-              }
-            );
-            events.connectionEvents.emit("new_connection", con);
+            if (err) {
+              console.error(err);
+            } else {
+              Post.updateMany(
+                { _id: { $in: [con.requested, con.offered] } },
+                { $set: { "connections.0": con } },
+                (err, out) => {
+                  if (err) console.log(err);
+                  console.log(out);
+                }
+              );
+              events.connectionEvents.emit("new_connection", con);
+            }
           });
         }
       }

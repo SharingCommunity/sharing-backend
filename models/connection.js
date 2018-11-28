@@ -15,6 +15,10 @@ const ConnectionSchema = new Schema({
     type: Boolean,
     default: false
   },
+  seen: {
+    type: Boolean,
+    default: false
+  },
   created: Date
 });
 

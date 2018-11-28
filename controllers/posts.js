@@ -5,7 +5,7 @@ module.exports = {
   listener: function(socket) {
     socket.on("post", function(post) {
       post.created = new Date();
-      post.user_session = socket.handshake.session.id;
+      post.user = socket.handshake.session.id;
 
       let _post = new Post(post);
 
@@ -15,7 +15,6 @@ module.exports = {
         // console.log("From Client: ", p);
       });
       console.log("Client Session :) ", socket.handshake.session.id);
-      console.log(`${socket.request.headers.cookie} posted this!`);
     });
   },
   router: post_router
