@@ -1,8 +1,7 @@
 const Post = require("../models/post");
 const post_router = require("express").Router();
 
-module.exports = {
-  listener: function(socket) {
+var listener = function(socket) {
     socket.on("post", function(post) {
       post.created = new Date();
       post.user = socket.handshake.session.id;
@@ -16,9 +15,7 @@ module.exports = {
       });
       console.log("Client Session :) ", socket.handshake.session.id);
     });
-  },
-  router: post_router
-};
+  };
 
 post_router.get("/", async (req, res) => {
   if (req.session.user) {
@@ -36,3 +33,8 @@ post_router.get("/", async (req, res) => {
   res.send(posts);
   res.end();
 });
+
+module.exports = {
+  listener: listener,
+  router: post_router
+}
