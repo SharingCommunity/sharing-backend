@@ -6,11 +6,9 @@ const express = require("express"),
   io = require("socket.io")(server),
   posts = require("./controllers/posts.js"),
   chats = require("./controllers/chats.js"),
-  connections = require("./controllers/connections.js"),
   session = require("express-session"),
   sharedSession = require("express-socket.io-session"),
   MongoDBStore = require("connect-mongodb-session")(session),
-  cookieParser = require("cookie-parser"),
   cookie = require("cookie"),
   mongoose = require("mongoose");
 
@@ -28,19 +26,17 @@ app.use(bodyparser.urlencoded({ extended: true }));
 const port = process.env.DEV_PORT;
 const host = process.env.DEV_HOST;
 const stage = process.env.NODE_ENV;
-const keys = require("./config/mode.js");
-
+const keys = require("./config/environment.js");
 // User Sockets
 
 // MongoDB set up
-mongoose.connect(
-  keys[stage].MONGO_URL,
-  { useNewUrlParser: true }
-);
+mongoose.connect(keys[stage].MONGO_URL, { useNewUrlParser: true });
 
 mongoose.connection.on("error", () => {
   console.log("Error occured in database connection");
 });
+
+// TODO: Convert to Typescript!
 
 mongoose.connection.once("open", () => {
   console.log(`Connection to database ${keys[stage].MONGO_URL} successful!`);
@@ -54,7 +50,7 @@ var store = new MongoDBStore({
 
 var Session = session({
   secret: "thisisasecret:)",
-  cookie: { maxAge: 60000 * 5 },
+  cookie: { maxAge: 60000 * 20 },
   store: store,
   saveUninitialized: false,
   resave: true
@@ -88,17 +84,24 @@ io.set("authorization", function(handshake, accept) {
   }
 });
 
+module.exports = {
+  io,
+  store
+};
+
+const connections = require("./controllers/connections.js");
+
 // Anytime there is a (re)connection save the socketID to the session
 io.on("connection", function(socket) {
   // let sessionID = socket.handshake.session.id;
 
   socket.handshake.session.socketID = socket.id;
-
   socket.handshake.session.save();
   // Now each session has it's socketID
-
-  // console.log("Socket Request", socket.handshake.session);
 });
+
+// TODO: pass a central kini to carry all
+//  of these guys
 
 // For Posts stuff
 io.on("connection", posts.listener);
@@ -107,6 +110,7 @@ io.on("connection", posts.listener);
 io.on("connection", chats.listener);
 
 // For Connections stuff
+
 io.on("connection", connections.listener);
 
 // Last last
@@ -133,5 +137,6 @@ app.get("/api/connect", (req, res) => {
   }
 });
 
+// Endpoints :b
 app.use("/api/posts", posts.router);
 app.use("/api/chats", chats.router);

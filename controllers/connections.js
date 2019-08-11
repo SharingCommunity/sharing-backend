@@ -28,11 +28,9 @@ var listener = function(socket) {
       } else {
         console.log(doc.user);
         request_user = doc.user;
+        console.log("Requst User", request_user);
       }
     });
-
-    console.log("Requst User", request_user);
-    console.log("Offer User", offer_user);
 
     Post.findById(offer_post, (err, doc) => {
       if (err) {
@@ -40,27 +38,28 @@ var listener = function(socket) {
       } else {
         console.log(doc.user);
         offer_user = doc.user;
+        console.log("Offer User", offer_user);
       }
     });
 
-    let request_socket = Store.get(request_user, (err, sess) => {
-      if (err) {
-        console.error(err);
-      } else {
-        return sess.socketID;
-      }
-    });
+    // let request_socket = Store.get(request_user, (err, sess) => {
+    //   if (err) {
+    //     console.error(err);
+    //   } else {
+    //     return sess.socketID;
+    //   }
+    // });
 
-    let offer_socket = Store.get(offer_user, (err, sess) => {
-      if (err) {
-        console.error(err);
-      } else {
-        return sess.socketID;
-      }
-    });
+    // let offer_socket = Store.get(offer_user, (err, sess) => {
+    //   if (err) {
+    //     console.error(err);
+    //   } else {
+    //     return sess.socketID;
+    //   }
+    // });
 
-    io.to(request_socket).emit("new_request", con);
-    io.to(offer_socket).emit("new_offer", con);
+    // io.to(request_socket).emit("new_request", con);
+    // io.to(offer_socket).emit("new_offer", con);
   });
 };
 

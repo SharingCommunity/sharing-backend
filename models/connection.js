@@ -3,10 +3,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const ConnectionSchema = new Schema({
-  requested: {
-    type: String,
-    default: null
-  },
+  requested: { type: mongoose.Schema.Types.ObjectId, ref: "Post" },
   offered: {
     type: String,
     default: null
