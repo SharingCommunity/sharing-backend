@@ -1,6 +1,8 @@
-const posts = require('./controllers/posts.js');
-const chats = require('./controllers/chats.js');
+// controllers
+import posts from './controllers/posts';
+import chats from './controllers/chats';
 
+// modules
 import express from 'express';
 import http from 'http';
 import i from 'socket.io';
@@ -12,13 +14,14 @@ import sharedSession from 'express-socket.io-session';
 import mStore from 'connect-mongodb-session';
 import cookie from 'cookie';
 import mongoose from 'mongoose';
-// import posts from './controllers/posts.js';
+
+// server config
 const app = express();
 const server = new http.Server(app);
 const io = i(server);
 const MongoDBStore = mStore(session);
-
 require('dotenv').config();
+
 app.use(
   require('cors')({
     origin: ['http://localhost:8080'], // Allow CORS from this domain (the frontend)
@@ -26,7 +29,9 @@ app.use(
     credentials: true,
   })
 );
+
 app.use(bodyparser.json());
+
 app.use(bodyparser.urlencoded({ extended: true }));
 
 const port = parseInt(process.env.DEV_PORT as string, 2);
@@ -49,10 +54,6 @@ mongoose
   .catch(err => {
     console.error(`Error in connecting to database: `, err);
   });
-
-mongoose.connection.on('error', () => {
-  console.log('Error in connection to database');
-});
 
 mongoose.connection.on('error', () => {
   console.log('Error occured in database connection');
@@ -109,14 +110,17 @@ io.use(function(socket, next) {
   }
 });
 
-module.exports = {
-  io,
-  store,
-};
+// TODO: look at a better way to pass the io and store objects
 
+export { io, store };
+
+// TODO: I don't like this :p
 const connections = require('./controllers/connections.js');
 
 // Anytime there is a (re)connection save the socketID to the session
+// You could actually also save the User id... then map the id to the current socket id.
+// TODO: refactor after creating User model
+
 io.on('connection', function(socket: i.Socket) {
   // let sessionID = socket.handshake.session.id;
 
@@ -147,7 +151,7 @@ server.listen(port, host, function() {
   console.log(`App listening on ${host}:${port}`);
 });
 
-/* ==============ROUTES=============== */
+/* ==============ROUTES (for testing only; remove soon) =============== */
 
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
