@@ -37,7 +37,7 @@ const keys = require('./config/environment.js');
 
 // MongoDB set up
 mongoose
-  .connect(keys[stage].MONGO_URL, {
+  .connect(keys[stage as string].MONGO_URL, {
     useNewUrlParser: true,
   })
   .then(client => {
@@ -69,7 +69,7 @@ mongoose.set('useCreateIndex', true);
 
 // MongoDB Store initiliazation
 const store = new MongoDBStore({
-  uri: keys[stage].MONGO_URL,
+  uri: keys[stage as string].MONGO_URL,
   collection: 'Sessions',
 });
 
