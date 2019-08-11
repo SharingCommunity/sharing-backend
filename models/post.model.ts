@@ -1,4 +1,4 @@
-import Connection from './connection';
+import Connection from './connection.model';
 import events from '../utils/events';
 import mongoose, { Schema, Document } from 'mongoose';
 
