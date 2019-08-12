@@ -1,9 +1,23 @@
-/node_modules/
+# npm modules
+/node_modules
 
+# environment variables
 .env
 
+# editor settings
 .vscode
 
-/public
+# public folder -- would delete probabaly --
+/src/public
+
+# ???
 /media
+
+# ???
 /dist
+
+# transpiled js from tsc
+/build
+
+# configuration files e.g environment settings
+/configuration
