@@ -1,18 +1,20 @@
 {
   "name": "sharing-backend",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Backend Server for Sharing App",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "set NODE_ENV=dev&& nodemon server.js"
+    "tsc": "tsc",
+    "dev": "set NODE_ENV=dev && ts-node-dev --respawn --transpileOnly ./src/server.ts",
+    "prod": "tsc && node ./build/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "sharing",
     "backend",
     "real-time"
   ],
-  "author": "@leankhan",
+  "author": "@LeanKhan",
   "repositry": "n/a",
   "license": "ISC",
   "dependencies": {

@@ -9,11 +9,11 @@ export interface IPost extends Document {
   request: boolean;
   offer: boolean;
   post_subject: string;
-  connections: [{ type: mongoose.Schema.Types.ObjectId; ref: 'Connection' }];
+  connections: [];
   user: string;
 }
 
-const PostSchema: Schema = new Schema(
+const PostSchema: Schema = new mongoose.Schema(
   {
     postmessage: {
       type: String,
@@ -30,9 +30,7 @@ const PostSchema: Schema = new Schema(
     post_subject: {
       type: String,
     },
-    connections: {
-      type: Array,
-    },
+    connections: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Connection' }],
     user: {
       type: String,
       required: true,

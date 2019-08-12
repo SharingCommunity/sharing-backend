@@ -16,6 +16,7 @@
     "no-var-requires": false,
     "only-arrow-functions": false,
     "class-name": true,
-    "no-invalid-template-strings": true
+    "no-invalid-template-strings": true,
+    "no-string-literal": false
   }
 }

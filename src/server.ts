@@ -1,6 +1,6 @@
 // controllers
-import posts from './controllers/posts';
-import chats from './controllers/chats';
+import * as posts from './controllers/posts';
+import * as chats from './controllers/chats';
 
 // modules
 import express from 'express';
@@ -34,15 +34,16 @@ app.use(bodyparser.json());
 
 app.use(bodyparser.urlencoded({ extended: true }));
 
-const port = parseInt(process.env.DEV_PORT as string, 2);
-const host = process.env.DEV_HOST;
-const stage = process.env.NODE_ENV;
-const keys = require('./config/environment.js');
+import config from '../configuration/environment';
+
+const port = process.env.PORT || 3000;
+const stage = process.env.NODE_ENV!.trim();
+const host = config[stage as string].MONGO_URL;
 // User Sockets
 
 // MongoDB set up
 mongoose
-  .connect(keys[stage as string].MONGO_URL, {
+  .connect(config[stage as string].MONGO_URL, {
     useNewUrlParser: true,
   })
   .then(client => {
@@ -70,7 +71,7 @@ mongoose.set('useCreateIndex', true);
 
 // MongoDB Store initiliazation
 const store = new MongoDBStore({
-  uri: keys[stage as string].MONGO_URL,
+  uri: config[stage as string].MONGO_URL,
   collection: 'Sessions',
 });
 
@@ -115,7 +116,7 @@ io.use(function(socket, next) {
 export { io, store };
 
 // TODO: I don't like this :p
-const connections = require('./controllers/connections.js');
+import * as connections from './controllers/connections';
 
 // Anytime there is a (re)connection save the socketID to the session
 // You could actually also save the User id... then map the id to the current socket id.
@@ -147,7 +148,7 @@ io.on('connection', chats.listener);
 io.on('connection', connections.listener);
 
 // Last last
-server.listen(port, host, function() {
+server.listen(port, function() {
   console.log(`App listening on ${host}:${port}`);
 });
 
@@ -171,5 +172,5 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 // });
 
 // Endpoints :b
-app.use('/api/posts', posts.router);
-app.use('/api/chats', chats.router);
+app.use('/api/posts', posts.postRouter);
+app.use('/api/chats', chats.chatsRouter);

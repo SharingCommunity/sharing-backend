@@ -35,7 +35,4 @@ postRouter.get('/', async (req, res) => {
   res.end();
 });
 
-export default {
-  listener,
-  router: postRouter,
-};
+export { listener, postRouter };

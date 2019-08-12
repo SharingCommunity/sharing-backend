@@ -18,7 +18,4 @@ chatsRouter.route('/:id').get((req, res) => {
   res.send(`Inside /chats/${id}`);
 });
 
-export default {
-  listener,
-  router: chatsRouter,
-};
+export { listener, chatsRouter };

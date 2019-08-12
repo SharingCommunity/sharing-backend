@@ -1,7 +1,7 @@
 import Post from '../models/post.model';
 import events from '../utils/events';
 import { Socket } from 'socket.io';
-import { IConnection } from 'models/connection.model';
+import { IConnection } from '../models/connection.model';
 // import { store as Store } from '../server';
 // import {io} from '../server';
 
@@ -102,6 +102,4 @@ const listener = function(socket: Socket) {
 //   });
 // }
 
-export default {
-  listener,
-};
+export { listener };

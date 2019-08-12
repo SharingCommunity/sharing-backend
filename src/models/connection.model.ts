@@ -7,7 +7,7 @@ export interface IConnection extends Document {
   seen: boolean;
 }
 
-const ConnectionSchema: Schema = new Schema(
+const ConnectionSchema: Schema = new mongoose.Schema(
   {
     fulfilled: {
       type: Boolean,
