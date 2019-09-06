@@ -23,60 +23,110 @@ router.post('/join', async (req, res) => {
 
       req.session!.save(err => {
         if (err) {
+          res
+            .status(400)
+            .send(
+              JSON.stringify({
+                error: true,
+                message: 'Error in authenticating user',
+                errorMessage: err,
+              })
+            );
           throw err;
         }
       });
       res
         .status(200)
-        .send({ error: false, message: `${u.Username} created successfully!` });
+        .send(
+          JSON.stringify({
+            error: false,
+            message: `${u.Username} created successfully!`,
+          })
+        );
     })
     .catch(err => {
-      res.status(400).send({
-        error: true,
-        message: 'Error creating user',
-        errorObject: err,
-      });
+      res.status(400).send(
+        JSON.stringify({
+          error: true,
+          message: 'Error creating user',
+          errorMessage: err,
+        })
+      );
     });
 });
 
 router.post('/login', (req, res) => {
   const credentials = req.body.data;
 
-  User.findOne({ Username: credentials.Username }, (err, u) => {
+  User.findOne({ Email: credentials.Email }, (err, u) => {
     if (err) {
       res.send(err);
     }
 
     if (!u) {
-      res.status(404).send({ error: false, message: 'User does not exist' });
+      res
+        .status(404)
+        .send(
+          JSON.stringify({
+            error: true,
+            message: 'User does not exist',
+            errorMessage: '',
+          })
+        );
     } else {
       u.comparePasswords(credentials.Password, function(
         error: any,
         isMatch: boolean
       ) {
         if (error) {
-          res.status(400).send({ error: true, message: error });
+          res
+            .status(400)
+            .send(
+              JSON.stringify({
+                error: true,
+                message: 'Error in authenticating user',
+                errorMessage: err,
+              })
+            );
         }
 
         if (isMatch) {
-          req.session!.username = u.Username;
+          req.session!.email = u.Email;
           req.session!.UserID = u._id;
 
+          // tslint:disable-next-line: no-shadowed-variable
           req.session!.save(err => {
             if (err) {
+              res
+                .status(400)
+                .send(
+                  JSON.stringify({
+                    error: true,
+                    message: 'Error in authenticating user',
+                    errorMessage: err,
+                  })
+                );
               throw err;
             }
           });
 
-          res.status(200).send({
-            error: false,
-            message: 'User authenticated successfully',
-            result: u,
-          });
+          res.status(200).send(
+            JSON.stringify({
+              error: false,
+              message: `Welcome back, ${u.Username}`,
+              result: { SessionID: req.sessionID, UserID: u._id },
+            })
+          );
         } else {
           res
             .status(400)
-            .send({ error: false, message: 'Password is incorrect' });
+            .send(
+              JSON.stringify({
+                error: true,
+                message: 'Password is incorrect',
+                errorMessage: '',
+              })
+            );
         }
       });
     }

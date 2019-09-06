@@ -1,6 +1,6 @@
 import express from 'express';
 import { Socket } from 'socket.io';
-const chatsRouter = express.Router();
+const router = express.Router();
 
 const listener = function(socket: Socket) {
   // console.log("Connection from chat?"+socket.id);
@@ -9,13 +9,13 @@ const listener = function(socket: Socket) {
   });
 };
 
-chatsRouter.route('/').get((req, res) => {
+router.route('/').get((req, res) => {
   res.send('Inside /chats');
 });
 
-chatsRouter.route('/:id').get((req, res) => {
+router.route('/:id').get((req, res) => {
   const id = req.params.id;
   res.send(`Inside /chats/${id}`);
 });
 
-export { listener, chatsRouter };
+export { listener, router };

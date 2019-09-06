@@ -1,7 +1,9 @@
 import Post from '../models/post.model';
 import express from 'express';
 import { Socket } from 'socket.io';
-const postRouter = express.Router();
+const router = express.Router();
+
+const sortByDateCreated = { createdAt: -1 };
 
 const listener = function(socket: Socket) {
   socket.on('post', function(post) {
@@ -12,27 +14,30 @@ const listener = function(socket: Socket) {
     POST.save((err, p) => {
       socket.emit('post', p);
       socket.broadcast.emit('new_post', p);
-      // console.log("From Client: ", p);
     });
     console.log('Client Session :) ', socket.handshake.session!.id);
   });
 };
 
-postRouter.get('/', async (req, res) => {
-  if (req.session!.user) {
-    req.session!.user_times++;
-  } else {
-    req.session!.user_times = 0;
-    const user = {
-      appName: 'VueJS',
-    };
-
-    req.session!.user = user;
-  }
-
-  const posts = await Post.find({});
-  res.send(posts);
+router.get('/', async (req, res) => {
+  const posts = await Post.find({})
+    .sort(sortByDateCreated)
+    // tslint:disable-next-line: no-shadowed-variable
+    .then(posts => {
+      res
+        .status(200)
+        .send(
+          JSON.stringify({ error: false, message: 'Posts', results: posts })
+        );
+    })
+    .catch(err => {
+      res
+        .status(400)
+        .send(
+          JSON.stringify({ error: true, message: 'Error getting posts', err })
+        );
+    });
   res.end();
 });
 
-export { listener, postRouter };
+export { listener, router };

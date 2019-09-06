@@ -1,6 +1,7 @@
 // controllers
 import * as posts from './controllers/posts';
 import * as chats from './controllers/chats';
+import * as user from './controllers/users';
 
 // modules
 import express from 'express';
@@ -15,6 +16,9 @@ import mStore from 'connect-mongodb-session';
 import cookie from 'cookie';
 import mongoose from 'mongoose';
 
+// Middleware and helper functions
+import { auth } from './utils/middleware';
+
 // server config
 const app = express();
 const server = new http.Server(app);
@@ -25,7 +29,7 @@ require('dotenv').config();
 app.use(
   require('cors')({
     origin: ['http://localhost:8080'], // Allow CORS from this domain (the frontend)
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'PUT', 'POST', 'DELETE', 'UPDATE', 'OPTIONS'],
     credentials: true,
   })
 );
@@ -33,6 +37,9 @@ app.use(
 app.use(bodyparser.json());
 
 app.use(bodyparser.urlencoded({ extended: true }));
+
+// Disable the 'x-powered-by' in our responses
+app.disable('x-powered-by');
 
 import config from '../configuration/environment';
 
@@ -63,24 +70,29 @@ mongoose.connection.on('error', () => {
 mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
 
-// TODO: Convert to Typescript!
-
 // mongoose.connection.once('open', () => {
 //   console.log(`Connection to database ${keys[stage].MONGO_URL} successful!`);
 // });
 
 // MongoDB Store initiliazation
-const store = new MongoDBStore({
-  uri: config[stage as string].MONGO_URL,
-  collection: 'Sessions',
-});
+const store = new MongoDBStore(
+  {
+    uri: config[stage as string].MONGO_URL,
+    collection: 'Sessions',
+  },
+  err => {
+    if (err) {
+      console.log('Error connecting Store to MongoDB => ', err);
+    }
+  }
+);
 
 const Session = session({
   secret: 'thisisasecret:)',
-  cookie: { maxAge: 60000 * 20 },
+  cookie: { maxAge: 60000 * 60 * 24, secure: 'auto', path: '/' },
   store,
   saveUninitialized: false,
-  resave: true,
+  resave: false,
 });
 
 // Catch errors
@@ -99,9 +111,9 @@ io.use(function(socket, next) {
 
 io.use(sharedSession(Session));
 
-// For prevent clients from connecting if they don't have the cookiess
+// For preventing clients from connecting if they don't have the cookiess
 io.use(function(socket, next) {
-  const cookies = cookie.parse(socket.handshake.headers.cookie);
+  const cookies = cookie.parse(socket.request.headers.cookie);
   if (cookies['connect.sid']) {
     console.log(`Client connected`);
     next();
@@ -125,10 +137,12 @@ import * as connections from './controllers/connections';
 io.on('connection', function(socket: i.Socket) {
   // let sessionID = socket.handshake.session.id;
 
+  console.log('Connection!');
+
   socket.handshake.session!.socketID = socket.id;
   socket.handshake.session!.save((err: Error) => {
     if (err) {
-      console.log('Error is saving session! => ', err);
+      console.log('Error in saving session! => ', err);
     }
   });
   // Now each session has it's socketID
@@ -149,12 +163,28 @@ io.on('connection', connections.listener);
 
 // Last last
 server.listen(port, function() {
-  console.log(`App listening on ${host}:${port}`);
+  console.log(`App listening on localhost:${port}`);
 });
 
 /* ==============ROUTES (for testing only; remove soon) =============== */
 
 app.use('/public', express.static(path.join(__dirname, 'public')));
+
+// o boy
+
+// app.use(function(req, res, next) {
+//   res.header('Access-Control-Allow-Credentials', 'true');
+//   res.header('Access-Control-Allow-Origin', '*');
+//   res.header(
+//     'Access-Control-Allow-Methods',
+//     'GET,PUT,POST,DELETE,UPDATE,OPTIONS'
+//   );
+//   res.header(
+//     'Access-Control-Allow-Headers',
+//     'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept'
+//   );
+//   next();
+// });
 
 // app.get('/api/connect', (req, res) => {
 //   if (req.session.views) {
@@ -172,5 +202,6 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 // });
 
 // Endpoints :b
-app.use('/api/posts', posts.postRouter);
-app.use('/api/chats', chats.chatsRouter);
+app.use('/api/posts', auth, posts.router);
+app.use('/api/chats', auth, chats.router);
+app.use('/api/user', user.router);
