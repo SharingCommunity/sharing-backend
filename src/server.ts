@@ -89,7 +89,7 @@ const store = new MongoDBStore(
 
 const Session = session({
   secret: 'thisisasecret:)',
-  cookie: { maxAge: 60000 * 60 * 24, secure: 'auto', path: '/' },
+  cookie: { maxAge: 60000 * 60 * 24 * 14, secure: 'auto', path: '/' },
   store,
   saveUninitialized: false,
   resave: false,

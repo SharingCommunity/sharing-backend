@@ -5,21 +5,18 @@ const auth: express.RequestHandler = (
   res: express.Response,
   next
 ) => {
-  // console.log('Req object => ', req.session);
-  if (req.session!.UserID) {
+  if (req.session!.userID) {
     console.log('User authenticated!', req.sessionID);
     next();
   } else {
     console.log('User not authorized!');
-    res
-      .status(401)
-      .send(
-        JSON.stringify({
-          error: true,
-          message: 'Authentication required!',
-          errorMessage: '',
-        })
-      );
+    res.status(401).send(
+      JSON.stringify({
+        error: true,
+        message: 'Authentication required!',
+        errorMessage: '',
+      })
+    );
     // next();
     // End the request :)
     res.end();
