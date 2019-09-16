@@ -21,20 +21,17 @@ const PostSchema: Schema = new mongoose.Schema(
     },
     request: {
       type: Boolean,
-      default: null,
+      default: false,
     },
     offer: {
       type: Boolean,
-      default: null,
+      default: false,
     },
     post_subject: {
       type: String,
     },
     connections: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Connection' }],
-    user: {
-      type: String,
-      required: true,
-    },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   { timestamps: true }
 );

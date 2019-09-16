@@ -7,20 +7,25 @@ const sortByDateCreated = { createdAt: -1 };
 
 const listener = function(socket: Socket) {
   socket.on('post', function(post) {
-    post.user = socket.handshake.session!.id;
+    post.user = socket.handshake.session!.userID;
 
     const POST = new Post(post);
 
     POST.save((err, p) => {
-      socket.emit('post', p);
-      socket.broadcast.emit('new_post', p);
+      if (err) {
+        console.log('Error saving post => ', err);
+      } else {
+        socket.emit('post', p);
+        socket.broadcast.emit('new_post', p);
+      }
     });
-    console.log('Client Session :) ', socket.handshake.session!.id);
   });
 };
 
 router.get('/', async (req, res) => {
   const posts = await Post.find({})
+    .populate('user')
+    .populate('connections')
     .sort(sortByDateCreated)
     // tslint:disable-next-line: no-shadowed-variable
     .then(posts => {
