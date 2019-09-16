@@ -24,12 +24,10 @@ const UserSchema: Schema = new Mongoose.Schema(
     FirstName: {
       type: String,
       required: true,
-      unique: true,
     },
     LastName: {
       type: String,
       required: true,
-      unique: true,
     },
     Username: {
       type: String,
@@ -48,7 +46,6 @@ const UserSchema: Schema = new Mongoose.Schema(
     PhoneNumber: {
       type: String,
       unique: true,
-      required: true,
     },
     Posts: [{ type: Mongoose.Schema.Types.ObjectId, ref: 'Post' }],
     Connections: [{ type: Mongoose.Schema.Types.ObjectId, ref: 'Connection' }],
