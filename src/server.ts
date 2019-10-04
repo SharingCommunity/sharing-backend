@@ -2,7 +2,8 @@
 import * as posts from './controllers/posts';
 import * as chats from './controllers/chats';
 import * as user from './controllers/users';
-
+import api from './controllers';
+import router from './routers';
 // modules
 import express from 'express';
 import http from 'http';
@@ -28,7 +29,7 @@ require('dotenv').config();
 
 app.use(
   require('cors')({
-    origin: ['http://localhost:8080'], // Allow CORS from this domain (the frontend)
+    origin: 'http://10.3.44.75:8080', // Allow CORS from this domain (the frontend)
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'UPDATE', 'OPTIONS'],
     credentials: true,
   })
@@ -88,8 +89,15 @@ const store = new MongoDBStore(
 );
 
 const Session = session({
+  name: 'sharing.sid',
   secret: 'thisisasecret:)',
-  cookie: { maxAge: 60000 * 60 * 24 * 14, secure: 'auto', path: '/' },
+  cookie: {
+    maxAge: 60000 * 60 * 24 * 14,
+    domain: '10.3.44.75',
+    secure: 'auto',
+    sameSite: true,
+    path: '/',
+  },
   store,
   saveUninitialized: false,
   resave: false,
@@ -104,24 +112,48 @@ store.on('error', function(error) {
 // Use Sessions o
 app.use(Session);
 
-// Socket.io Instance
-io.use(function(socket, next) {
-  Session(socket.request, socket.request.res, next);
-});
-
 io.use(sharedSession(Session));
 
+app.use('/app', router);
+app.use('/api', api);
+
+// io.use(sharedSession(Session));
+
 // For preventing clients from connecting if they don't have the cookiess
+/***
+ *
+ * <== FOR NOW THIS IS PAUSED ==>
+ */
 io.use(function(socket, next) {
-  const cookies = cookie.parse(socket.request.headers.cookie);
-  if (cookies['connect.sid']) {
-    console.log(`Client connected`);
-    next();
-  } else {
-    console.log('No cookie sent, reload the frontend');
-    next(new Error('Not authorized man!'));
+  const sessionID = socket.handshake.sessionID as string;
+
+  if (socket.request.headers.cookie) {
+    const cookies = cookie.parse(socket.request.headers.cookie);
+    if (cookies['sharing.sid']) {
+      store.get(sessionID, (err, sess) => {
+        if (!err) {
+          if (sess) {
+            console.log(`Client connected`);
+            next();
+          } else {
+            console.log('Invalid Cookie!');
+            next(new Error('Cookie is expired!'));
+          }
+        } else {
+          next(err);
+        }
+      });
+    } else {
+      console.log('No cookie sent, reload the frontend');
+      next(new Error('Not authorized man!'));
+    }
   }
 });
+
+// Socket.io Instance
+// io.use(function(socket, next) {
+//   Session(socket.request, socket.request.res || {}, next);
+// });
 
 // TODO: look at a better way to pass the io and store objects
 
@@ -139,11 +171,20 @@ io.on('connection', function(socket: i.Socket) {
 
   console.log('Connection!');
 
+  socket.handshake.session!.onlineStart = new Date();
   socket.handshake.session!.socketID = socket.id;
   socket.handshake.session!.save((err: Error) => {
     if (err) {
       console.log('Error in saving session! => ', err);
     }
+  });
+
+  socket.on('disconnect', function(reason) {
+    // if(reason === 'io server disconnect'){
+    //   socket.connect();
+    // }
+    console.log('Disconnection!');
+    socket.handshake.session!.lastSeen = new Date();
   });
   // Now each session has it's socketID
 });
@@ -186,22 +227,4 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 //   next();
 // });
 
-// app.get('/api/connect', (req, res) => {
-//   if (req.session.views) {
-//     req.session.views++;
-//     res.setHeader('Content-Type', 'text/html');
-//     res.write('<p>views: ' + req.session.views + '</p>');
-//     res.write('<p>expires in: ' + req.session.cookie.maxAge / 1000 + 's</p>');
-//     res.end();
-//     console.log('From /api/connect: ', req.session.cookie);
-//   } else {
-//     req.session.views = 1;
-//     res.end('welcome to the session demo. refresh!');
-//     console.log('From /api/connect: ', req.session.cookie);
-//   }
-// });
-
 // Endpoints :b
-app.use('/api/posts', auth, posts.router);
-app.use('/api/chats', auth, chats.router);
-app.use('/api/user', user.router);
