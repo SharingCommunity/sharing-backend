@@ -117,13 +117,6 @@ io.use(sharedSession(Session));
 app.use('/app', router);
 app.use('/api', api);
 
-// io.use(sharedSession(Session));
-
-// For preventing clients from connecting if they don't have the cookiess
-/***
- *
- * <== FOR NOW THIS IS PAUSED ==>
- */
 io.use(function(socket, next) {
   const sessionID = socket.handshake.sessionID as string;
 
@@ -186,8 +179,8 @@ io.on('connection', function(socket: i.Socket) {
     // if(reason === 'io server disconnect'){
     //   socket.connect();
     // }
-    console.log('Disconnection!');
-    socket.handshake.session!.lastSeen = new Date();
+
+    console.log('Disconnected client =>', socket.handshake.session);
   });
   // Now each session has it's socketID
 });
@@ -229,5 +222,3 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 //   );
 //   next();
 // });
-
-// Endpoints :b

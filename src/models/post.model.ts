@@ -2,7 +2,7 @@
 
 import Connection from './connection.model';
 import events from '../utils/events';
-// import User from './user.model';
+import User from './user.model';
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IPost extends Document {
@@ -43,9 +43,9 @@ const PostSchema: Schema = new mongoose.Schema(
       default: 'Pending Sharing',
     },
     connections: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Connection' }],
-    user: { type: String },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     chats: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }],
-    participants: [{ type: String }],
+    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   { timestamps: true }
 );
@@ -134,18 +134,18 @@ PostSchema.pre('save', function(this: IPost, next) {
 
 // TODO:
 // Test this out
-// PostSchema.post('save', function(this: IPost, next) {
-//   User.findOneAndUpdate(
-//     { _id: this.user },
-//     { $push: { Posts: this._id } },
-//     (err, doc) => {
-//       if (!err) {
-//         console.log('Update successful!');
-//       } else {
-//         throw err;
-//       }
-//     }
-//   );
-// });
+PostSchema.post('save', function(this: IPost, next) {
+  User.findOneAndUpdate(
+    { _id: this.user },
+    { $push: { Posts: this._id } },
+    (err, doc) => {
+      if (!err) {
+        console.log('Update successful!');
+      } else {
+        throw err;
+      }
+    }
+  );
+});
 
 export default mongoose.model<IPost>('Post', PostSchema, 'Posts');

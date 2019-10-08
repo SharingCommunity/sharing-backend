@@ -5,6 +5,9 @@ const router = express.Router();
 
 const sortByDateCreated = { createdAt: -1 };
 
+// Now reference all users in their posts using
+// their userID
+
 const listener = function(socket: Socket) {
   socket.on('post', function(post: IPost) {
     // post.user._id = socket.handshake.session!.userID;

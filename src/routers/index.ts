@@ -131,6 +131,8 @@ router.post('/check-cookie', (req, res) => {
             } else {
               // SESSION DOES NOT EXIST!
               console.log('Session does not exist!');
+
+              // So make new session for user...
             }
           });
         }
@@ -144,6 +146,8 @@ router.post('/check-cookie', (req, res) => {
             message: 'User does not exist',
           })
         );
+
+        // So save new user...
       });
 
     // Find the user
@@ -256,6 +260,6 @@ router.post('/check-cookie', (req, res) => {
   }
 });
 
-// TODO: Turn this to middleware please!!!
+// TODO: Turn this to middleware please?
 
 export default router;
