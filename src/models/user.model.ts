@@ -94,9 +94,6 @@ UserSchema.method('findSession', function(sessionID: string, cb: any) {
   });
 });
 
-// UserSchema.method('updateSession', function(sessionID: string, cb: any) {
-//   this.
-// });
 
 UserSchema.methods = {
   // updateSession(session: string, cb: any) {
