@@ -15,42 +15,42 @@ const listener = function(socket: Socket) {
         - Find the two posts involved,
         - Then find the two sessions involved,
         - Find the two sockets involved from the sessions,
-        - Depending on the type of posts: (offer or request)
+        - Depending on the type of posts: (givingPost or askingPost)
           alert the sockets.
 
        */
 
-    const requestPost = con.requested;
-    const offerPost = con.offered;
+    const askingPost = con.askingPost;
+    const givingPost = con.givingPost;
 
-    let requestUser;
-    let offerUser;
+    let askingUser;
+    let givingUser;
 
-    Post.findById(requestPost, (err, doc) => {
+    Post.findById(askingPost, (err, doc) => {
       if (err) {
         throw err;
       } else if (doc) {
         console.log(doc.user);
-        requestUser = doc.user;
-        console.log('Requst User', requestUser);
+        askingUser = doc.user;
+        console.log('Requst User', askingUser);
       } else {
         console.log('Post does not exist');
       }
     });
 
-    Post.findById(offerPost, (err, doc) => {
+    Post.findById(givingPost, (err, doc) => {
       if (err) {
         throw err;
       } else if (doc) {
         console.log(doc.user);
-        offerUser = doc.user;
-        console.log('Offer User', offerUser);
+        givingUser = doc.user;
+        console.log('Offer User', givingUser);
       } else {
         console.log('Post does not exist');
       }
     });
 
-    // const request_socket = Store.get(requestUser, (err, sess) => {
+    // const request_socket = Store.get(askingUser, (err, sess) => {
     //   if (err) {
     //     console.error(err);
     //   } else {
@@ -71,32 +71,32 @@ const listener = function(socket: Socket) {
   });
 };
 
-// function initialize(requestPost, offerPost) {
+// function initialize(askingPost, givingPost) {
 //   const post_users = {};
 
-//   const requestPost = requestPost;
-//   const offerPost = offerPost;
+//   const askingPost = askingPost;
+//   const givingPost = givingPost;
 
 //   return new Promise(function(resolve, reject) {
 //     // Find request post
 
-//     Post.findById(requestPost, (err, doc) => {
+//     Post.findById(askingPost, (err, doc) => {
 //       if (err) {
 //         throw err;
 //       } else {
 //         console.log(doc.user);
-//         requestUser = doc.user;
+//         askingUser = doc.user;
 //       }
 //     });
 
 //     // Find offer post
 
-//     Post.findById(offerPost, (err, doc) => {
+//     Post.findById(givingPost, (err, doc) => {
 //       if (err) {
 //         throw err;
 //       } else {
 //         console.log(doc.user);
-//         requestUser = doc.user;
+//         askingUser = doc.user;
 //       }
 //     });
 //   });

@@ -1,20 +1,26 @@
 import Mongoose, { Model, Schema, Document, model } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { uniqueNamesGenerator } from 'unique-names-generator';
+import { store } from '../server';
 
 export interface IUserDocument extends Document {
   FirstName: string;
   LastName: string;
   Username: string;
-  Password: string;
-  Email: string;
   PhoneNumber: string;
+  Session: string;
   Posts: [];
-  Connections: [];
+  findSession(session: string, callback: any): void;
 }
 
 export interface IUser extends IUserDocument {
-  comparePasswords(password: string, callback: any): any;
+  FirstName: string;
+  LastName: string;
+  Username: string;
+  PhoneNumber: string;
+  Session: string;
+  Posts: [];
+  findSession(session: string, callback: any): void;
 }
 
 export interface IUserModel extends Model<IUser> {}
@@ -23,98 +29,107 @@ const UserSchema: Schema = new Mongoose.Schema(
   {
     FirstName: {
       type: String,
-      required: true,
     },
     LastName: {
       type: String,
-      required: true,
     },
     Username: {
       type: String,
-      unique: true,
-      // required: true,
-    },
-    Password: {
-      type: String,
-      required: true,
-    },
-    Email: {
-      type: String,
-      unique: true,
-      required: true,
     },
     PhoneNumber: {
       type: String,
-      unique: true,
+    },
+    Session: {
+      type: String,
     },
     Posts: [{ type: Mongoose.Schema.Types.ObjectId, ref: 'Post' }],
-    Connections: [{ type: Mongoose.Schema.Types.ObjectId, ref: 'Connection' }],
   },
   { timestamps: true }
 );
 
 // Creating a new user;
 
-UserSchema.pre('save', function(this: IUser, next) {
-  if (!this.isModified) {
-    next();
-  }
+// UserSchema.pre('save', function(this: IUser, next) {
+//   if (!this.isModified) {
+//     next();
+//   }
 
-  if (this.isNew) {
-    this.Username = createUsername();
-    console.log('Username created successfully => ', this.Username);
-    hashPassword(this)
-      .then(hash => {
-        this.Password = hash;
-        console.log('User password hashed! => ', hash);
-        next();
-      })
-      .catch(err => {
-        console.log('Error hashing password => ', err);
-        next(err);
-      });
-  } else if (this.isModified('Password')) {
-    hashPassword(this)
-      .then(hash => {
-        this.Password = hash;
-        next();
-      })
-      .catch(err => {
-        console.log('Error hashing password => ', err);
-        next(err);
-      });
-  }
-});
+//   if (this.isNew) {
+//     this.Username = createUsername();
+//     console.log('Username created successfully => ', this.Username);
+//     hashPassword(this)
+//       .then(hash => {
+//         this.Password = hash;
+//         console.log('User password hashed! => ', hash);
+//         next();
+//       })
+//       .catch(err => {
+//         console.log('Error hashing password => ', err);
+//         next(err);
+//       });
+//   } else if (this.isModified('Password')) {
+//     hashPassword(this)
+//       .then(hash => {
+//         this.Password = hash;
+//         next();
+//       })
+//       .catch(err => {
+//         console.log('Error hashing password => ', err);
+//         next(err);
+//       });
+//   }
+// });
 
 // UserSchema.method('comparePasswords', function(password: string, cb: any){
 //    bcrypt.compare(password,)
 // });
 
+UserSchema.method('findSession', function(sessionID: string, cb: any) {
+  store.get(sessionID, (err, sess) => {
+    if (!err) {
+      return cb(null, sess);
+    } else {
+      throw err;
+    }
+  });
+});
+
+// UserSchema.method('updateSession', function(sessionID: string, cb: any) {
+//   this.
+// });
+
 UserSchema.methods = {
-  comparePasswords(password: string, cb: any) {
-    bcrypt
-      .compare(password, this.Password)
-      .then(isMatch => {
-        return cb(null, isMatch);
-      })
-      .catch(err => {
-        throw err;
-      });
-  },
+  // updateSession(session: string, cb: any) {
+  //   this
+  // }
+  // comparePasswords(password: string, cb: any) {
+  //   bcrypt
+  //     .compare(password, this.Password)
+  //     .then(isMatch => {
+  //       return cb(null, isMatch);
+  //     })
+  //     .catch(err => {
+  //       throw err;
+  //     });
+  // },
   //   generateUsername(): string {
   //       const suggestedName = uniqueNamesGenerator({separator: '-'});
   //   }
+  // Create function that pushes a post ID in the Posts collection
+  // pushPost(postID: Mongoose.Schema.Types.ObjectId) {
+  //   this.
+  // }
 };
 
-// TODO: Add dictionary of Nigerian things > like Nigerian food
-function createUsername(): string {
-  let suggestedName = uniqueNamesGenerator({ separator: '-' });
-  return (suggestedName += Math.round(Math.random() * 1024));
-}
+// // TODO: Add dictionary of Nigerian things > like Nigerian food
+// function createUsername(): string {
+//   let suggestedName = uniqueNamesGenerator({ separator: '-' });
+//   return (suggestedName += Math.round(Math.random() * 1024));
+// }
 
-function hashPassword(user: IUser): Promise<string> {
-  return bcrypt.hash(user.Password, 10);
-}
+// function hashPassword(user: IUser): Promise<string> {
+//   return bcrypt.hash(user.Password, 10);
+// }
 
 const User: IUserModel = Mongoose.model<IUser, IUserModel>(
   'User',

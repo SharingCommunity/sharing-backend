@@ -19,24 +19,42 @@ const listener = function(socket: Socket) {
     POST.save((err, p) => {
       if (err) {
         console.log('Error saving post => ', err);
+        socket.emit('ERROR', {error: true, message: 'Error Saving Post'});
       } else {
         socket.emit('post', p);
         socket.broadcast.emit('new_post', p);
+
+        // Send to all clients including poster...
+        // socket.emit('new_post', p);
       }
     });
   });
 
+  // TODO: send a notification to the owner of the post when this happens
   socket.on('start-sharing', function(id) {
     Post.findByIdAndUpdate(
       id,
       {
         status: 'Sharing Ongoing',
         $push: { participants: socket.handshake.sessionID },
-      },{new: true},
+      },
+      { new: true },
       (err, doc) => {
         if (!err) {
           console.log('Update successful!');
           socket.broadcast.emit('post_updated', doc);
+
+          const event = {
+            error: false,
+            type: 2,
+            post: doc!._id,
+            time: new Date(),
+            message: 'One of your posts in now active!'
+          };
+          socket.broadcast.to(doc!.user).emit('POST_EVENT', event);
+
+          // Send a notification to the user that someone has looked at his post
+          
         } else {
           throw err;
         }

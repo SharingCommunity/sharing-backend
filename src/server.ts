@@ -29,7 +29,7 @@ require('dotenv').config();
 
 app.use(
   require('cors')({
-    origin: 'http://10.3.44.75:8080', // Allow CORS from this domain (the frontend)
+    origin: 'http://10.3.91.21:8080', // Allow CORS from this domain (the frontend)
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'UPDATE', 'OPTIONS'],
     credentials: true,
   })
@@ -93,7 +93,7 @@ const Session = session({
   secret: 'thisisasecret:)',
   cookie: {
     maxAge: 60000 * 60 * 24 * 14,
-    domain: '10.3.44.75',
+    domain: '10.3.91.21',
     secure: 'auto',
     sameSite: true,
     path: '/',
@@ -173,6 +173,9 @@ io.on('connection', function(socket: i.Socket) {
 
   socket.handshake.session!.onlineStart = new Date();
   socket.handshake.session!.socketID = socket.id;
+  if (!socket.handshake.session!.events) {
+    socket.handshake.session!.events = [];
+  }
   socket.handshake.session!.save((err: Error) => {
     if (err) {
       console.log('Error in saving session! => ', err);
