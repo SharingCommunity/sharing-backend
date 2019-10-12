@@ -42,15 +42,12 @@ router.get('/logout', (req, res) => {
 router.post('/check-cookie', (req, res) => {
   // If Session is there!
 
-  console.log('Body => ', req.body);
-
   // const payload = JSON.parse(req.body);
 
   // If the session exists do this =>
 
   if (req.session!.socketID) {
     const sessionID = req.sessionID as string;
-    console.log('Session =>', req.session);
 
     // TODO: Find a way to track user
     // events and notifications.
@@ -77,7 +74,7 @@ router.post('/check-cookie', (req, res) => {
           );
         }
       } else {
-        console.log("There's an error tho");
+        console.log('There\'s an error tho');
         res
           .status(400)
           .send(

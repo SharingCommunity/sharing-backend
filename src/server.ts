@@ -180,6 +180,9 @@ io.on('connection', function(socket: i.Socket) {
     //   socket.connect();
     // }
 
+    // TODO: Add lastSeen functionality
+    // Session object still avialable
+    // so update lastSeen from here...
     console.log('Disconnected client =>', socket.handshake.session);
   });
   // Now each session has it's socketID

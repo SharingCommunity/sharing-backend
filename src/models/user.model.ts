@@ -10,6 +10,7 @@ export interface IUserDocument extends Document {
   PhoneNumber: string;
   Session: string;
   Posts: [];
+  Events: [];
   findSession(session: string, callback: any): void;
 }
 
@@ -20,6 +21,7 @@ export interface IUser extends IUserDocument {
   PhoneNumber: string;
   Session: string;
   Posts: [];
+  Events: [];
   findSession(session: string, callback: any): void;
 }
 
@@ -43,6 +45,7 @@ const UserSchema: Schema = new Mongoose.Schema(
       type: String,
     },
     Posts: [{ type: Mongoose.Schema.Types.ObjectId, ref: 'Post' }],
+    Events: [{}],
   },
   { timestamps: true }
 );
@@ -83,17 +86,6 @@ const UserSchema: Schema = new Mongoose.Schema(
 // UserSchema.method('comparePasswords', function(password: string, cb: any){
 //    bcrypt.compare(password,)
 // });
-
-UserSchema.method('findSession', function(sessionID: string, cb: any) {
-  store.get(sessionID, (err, sess) => {
-    if (!err) {
-      return cb(null, sess);
-    } else {
-      throw err;
-    }
-  });
-});
-
 
 UserSchema.methods = {
   // updateSession(session: string, cb: any) {

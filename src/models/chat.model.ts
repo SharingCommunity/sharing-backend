@@ -7,7 +7,8 @@ export interface IChat extends Document {
   message: string;
   post: string;
   from: string;
-  to: string;
+  // to: string;
+  participants: string[];
   time: Date;
 }
 
@@ -15,8 +16,9 @@ const ChatSchema: Schema = new mongoose.Schema(
   {
     message: String,
     post: { type: mongoose.Schema.Types.ObjectId, ref: 'Post' },
-    from: String,
-    to: String,
+    from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    // to: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     time: Date,
   },
   { timestamps: true }

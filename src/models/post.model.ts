@@ -135,8 +135,8 @@ PostSchema.pre('save', function(this: IPost, next) {
 // TODO:
 // Test this out
 PostSchema.post('save', function(this: IPost, next) {
-  User.findOneAndUpdate(
-    { _id: this.user },
+  User.findByIdAndUpdate(
+    this.user,
     { $push: { Posts: this._id } },
     (err, doc) => {
       if (!err) {
