@@ -148,4 +148,6 @@ PostSchema.post('save', function(this: IPost, next) {
   );
 });
 
+PostSchema.index({ createdAt: 1 }, { expiresAfterSeconds: 60 * 20 });
+
 export default mongoose.model<IPost>('Post', PostSchema, 'Posts');
