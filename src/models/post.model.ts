@@ -1,7 +1,6 @@
 // tslint:disable: no-shadowed-variable
 
 import Connection from './connection.model';
-import events from '../utils/events';
 import User from './user.model';
 import mongoose, { Schema, Document } from 'mongoose';
 
@@ -50,87 +49,87 @@ const PostSchema: Schema = new mongoose.Schema(
   { timestamps: true }
 );
 
-PostSchema.pre('save', function(this: IPost, next) {
-  if (this.asking === true) {
-    const self = this;
-    const Post = this.model('Post');
-    Post.findOne(
-      {
-        giving: true,
-        subject: this.subject,
-        connections: { $size: 0 },
-      },
-      function(err, doc) {
-        if (err) {
-          console.log(err);
-        } else if (doc) {
-          const connection = new Connection({
-            givingPost: self._id,
-            askingPost: doc._id,
-          });
-          connection.save(function(err, con) {
-            if (err) {
-              console.error(err);
-            } else {
-              Post.updateMany(
-                { _id: { $in: [con.askingPost, con.givingPost] } },
-                { $set: { 'connections.0': con } },
-                (err, out) => {
-                  if (err) {
-                    console.log(err);
-                  }
-                  console.log(out);
-                }
-              );
-              events.connectionEvents.emit('new_connection', con);
-            }
-          });
-          // console.log("From Backend", doc);
-        }
-      }
-    );
-    return next();
-  } else if (this.giving === true) {
-    const self = this;
-    const Post = this.model('Post');
-    Post.findOne(
-      {
-        asking: true,
-        subject: this.subject,
-        connections: { $size: 0 },
-      },
-      function(err, doc) {
-        if (err) {
-          console.log(err);
-        } else if (doc) {
-          const connection = new Connection({
-            askingPost: doc._id,
-            givingPost: self._id,
-          });
-          // console.log("From Backend", doc);
-          connection.save((err, con) => {
-            if (err) {
-              console.error(err);
-            } else {
-              Post.updateMany(
-                { _id: { $in: [con.askingPost, con.givingPost] } },
-                { $set: { 'connections.0': con } },
-                (err, out) => {
-                  if (err) {
-                    console.log(err);
-                  }
-                  console.log(out);
-                }
-              );
-              events.connectionEvents.emit('new_connection', con);
-            }
-          });
-        }
-      }
-    );
-    return next();
-  }
-});
+// PostSchema.pre('save', function(this: IPost, next) {
+//   if (this.asking === true) {
+//     const self = this;
+//     const Post = this.model('Post');
+//     Post.findOne(
+//       {
+//         giving: true,
+//         subject: this.subject,
+//         connections: { $size: 0 },
+//       },
+//       function(err, doc) {
+//         if (err) {
+//           console.log(err);
+//         } else if (doc) {
+//           const connection = new Connection({
+//             givingPost: self._id,
+//             askingPost: doc._id,
+//           });
+//           connection.save(function(err, con) {
+//             if (err) {
+//               console.error(err);
+//             } else {
+//               Post.updateMany(
+//                 { _id: { $in: [con.askingPost, con.givingPost] } },
+//                 { $set: { 'connections.0': con } },
+//                 (err, out) => {
+//                   if (err) {
+//                     console.log(err);
+//                   }
+//                   console.log(out);
+//                 }
+//               );
+//               events.connectionEvents.emit('new_connection', con);
+//             }
+//           });
+//           // console.log("From Backend", doc);
+//         }
+//       }
+//     );
+//     return next();
+//   } else if (this.giving === true) {
+//     const self = this;
+//     const Post = this.model('Post');
+//     Post.findOne(
+//       {
+//         asking: true,
+//         subject: this.subject,
+//         connections: { $size: 0 },
+//       },
+//       function(err, doc) {
+//         if (err) {
+//           console.log(err);
+//         } else if (doc) {
+//           const connection = new Connection({
+//             askingPost: doc._id,
+//             givingPost: self._id,
+//           });
+//           // console.log("From Backend", doc);
+//           connection.save((err, con) => {
+//             if (err) {
+//               console.error(err);
+//             } else {
+//               Post.updateMany(
+//                 { _id: { $in: [con.askingPost, con.givingPost] } },
+//                 { $set: { 'connections.0': con } },
+//                 (err, out) => {
+//                   if (err) {
+//                     console.log(err);
+//                   }
+//                   console.log(out);
+//                 }
+//               );
+//               events.connectionEvents.emit('new_connection', con);
+//             }
+//           });
+//         }
+//       }
+//     );
+//     return next();
+//   }
+// });
 
 // TODO:
 // Test this out
