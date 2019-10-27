@@ -1,10 +1,9 @@
-import express from 'express';
-import Chat from '../models/chat.model';
+import { Router } from 'express';
 import { Socket } from 'socket.io';
-import User, { IUser } from '../models/user.model';
-import { getUserSocketID } from '../utils/helpers';
+import { findUserById } from '../services/users.service';
 import { store, io } from '../server';
-const router = express.Router();
+import { newChat } from '../services/chats.service';
+const router = Router();
 
 const listener = function(socket: Socket) {
   // console.log("Connection from chat?"+socket.id);
@@ -17,8 +16,7 @@ const listener = function(socket: Socket) {
 
     console.log('Chat!', chat);
 
-    // Create new Chat object...
-    const CHAT = new Chat(chat);
+    const CHAT = newChat(chat);
 
     // Save...
     CHAT.save((err, c) => {
@@ -41,7 +39,7 @@ const listener = function(socket: Socket) {
         // 6. END
 
         CHAT.participants.forEach(u => {
-          getUserSocketID(u)
+          findUserById(u)
             .then(u => {
               if (u) {
                 store.get(u.Session, (err: any, sess: any) => {
@@ -63,7 +61,7 @@ const listener = function(socket: Socket) {
         // To send the participant(s) a notification just...
         // filter the sender's user id and then just send the message straight...
 
-        // getUserSocketID(CHAT.to).then(socketID => {
+        // findUserById(CHAT.to).then(socketID => {
         //   socket.broadcast.to(socketID).emit('new_message', c);
         // });
       }
