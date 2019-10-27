@@ -16,6 +16,10 @@ import sharedSession from 'express-socket.io-session';
 import mStore from 'connect-mongodb-session';
 import cookie from 'cookie';
 import mongoose from 'mongoose';
+import helmet from 'helmet';
+
+// Logger
+import logger from './utils/logger';
 
 // Middleware and helper functions
 import { auth } from './utils/middleware';
@@ -39,6 +43,8 @@ app.use(bodyparser.json());
 
 app.use(bodyparser.urlencoded({ extended: true }));
 
+app.use(helmet());
+
 // Disable the 'x-powered-by' in our responses
 app.disable('x-powered-by');
 
@@ -56,16 +62,18 @@ mongoose
   })
   .then(client => {
     app.locals.db = client.connection.db;
-    console.log(
+    logger.log(
+      'info',
       `Connection to ${client.connection.db.databaseName} database successful!`
     );
   })
   .catch(err => {
-    console.error(`Error in connecting to database: `, err);
+    // console.error(`Error in connecting to database: `, err);
+    logger.error('Error connecting to database', [err]);
   });
 
 mongoose.connection.on('error', () => {
-  console.log('Error occured in database connection');
+  logger.error('Error occured in database connection');
 });
 
 mongoose.set('useFindAndModify', false);
@@ -83,7 +91,7 @@ const store = new MongoDBStore(
   },
   err => {
     if (err) {
-      console.log('Error connecting Store to MongoDB => ', err);
+      logger.error('Error connecting Store to MongoDB => ', err);
     }
   }
 );
@@ -117,6 +125,13 @@ io.use(sharedSession(Session));
 app.use('/app', router);
 app.use('/api', api);
 
+app.use('/', (req, res) => {
+  res
+    .set('content-type', 'text/html')
+    .status(200)
+    .send('<h4>Hi! Welcome to the Sharing Api</h4>');
+});
+
 io.use(function(socket, next) {
   const sessionID = socket.handshake.sessionID as string;
 
@@ -126,10 +141,14 @@ io.use(function(socket, next) {
       store.get(sessionID, (err, sess) => {
         if (!err) {
           if (sess) {
-            console.log(`Client connected`);
+            if (process.env.NODE_ENV === 'dev') {
+              logger.log('info', 'Client Connected!');
+            }
             next();
           } else {
-            console.log('Invalid Cookie!');
+            if (process.env.NODE_ENV === 'dev') {
+              console.log('Invalid Cookie!');
+            }
             next(new Error('Cookie is expired!'));
           }
         } else {
@@ -137,7 +156,7 @@ io.use(function(socket, next) {
         }
       });
     } else {
-      console.log('No cookie sent, reload the frontend');
+      // console.log('No cookie sent, reload the frontend');
       next(new Error('Not authorized man!'));
     }
   }
@@ -162,7 +181,9 @@ import * as connections from './controllers/connections';
 io.on('connection', function(socket: i.Socket) {
   // let sessionID = socket.handshake.session.id;
 
-  console.log('Connection!');
+  if (process.env.NODE_ENV === 'dev') {
+    logger.log('info', 'Client Connected to socket');
+  }
 
   socket.handshake.session!.onlineStart = new Date();
   socket.handshake.session!.socketID = socket.id;
@@ -171,11 +192,11 @@ io.on('connection', function(socket: i.Socket) {
   }
   socket.handshake.session!.save((err: Error) => {
     if (err) {
-      console.log('Error in saving session! => ', err);
+      logger.error('Error in saving session! => ', err);
     }
   });
 
-  socket.on('disconnect', function(reason) {
+  socket.on('disconnect', function() {
     // if(reason === 'io server disconnect'){
     //   socket.connect();
     // }
@@ -183,7 +204,8 @@ io.on('connection', function(socket: i.Socket) {
     // TODO: Add lastSeen functionality
     // Session object still avialable
     // so update lastSeen from here...
-    console.log('Disconnected client =>', socket.handshake.session);
+    console.log();
+    logger.info(`Disconnected client =>  ${socket.handshake.session}`);
   });
   // Now each session has it's socketID
 });
@@ -203,7 +225,7 @@ io.on('connection', connections.listener);
 
 // Last last
 server.listen(port, function() {
-  console.log(`App listening on localhost:${port}`);
+  logger.info(`App listening on localhost:${port}`);
 });
 
 /* ==============ROUTES (for testing only; remove soon) =============== */
