@@ -53,11 +53,7 @@ app.disable('x-powered-by');
 const port = process.env.PORT || 3000;
 const stage = process.env.NODE_ENV!.trim();
 
-let dbstring = 'mongodb://localhost:27017/sharing';
-
-if (process.env.NODE_ENV === 'prod') {
-  dbstring = process.env.PROD_MONGO_URL!.trim();
-}
+const dbstring = process.env.MONGO_URL!.trim();
 
 mongoose
   .connect(dbstring, {
