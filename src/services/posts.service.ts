@@ -19,7 +19,7 @@ export const newPost = (data: any) => {
  * @param query
  */
 export const fetchPosts = (query: {} = {}) => {
-  return Post.find(query);
+  return Post.find(query).populate('Chats');
 };
 
 /**

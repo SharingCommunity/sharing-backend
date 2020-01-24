@@ -1,9 +1,10 @@
-import express from 'express';
-import User, { IUser, IUserDocument } from '../models/user.model';
+import { Router } from 'express';
 import { store } from '../server';
+import { newUser, findUserById } from '../services/users.service';
+import { checkSession, refreshSession, createNewUser } from '../middleware';
 // import bcrypt from 'bcryptjs';
 
-const router = express.Router();
+const router = Router();
 
 // TODO: Rewrite these you may not need them at all...
 
@@ -30,6 +31,8 @@ router.get('/logout', (req, res) => {
     res.status(404).send('User not found!');
   }
 });
+
+router.post('/bruh', checkSession, refreshSession, createNewUser);
 
 // Check cookie bro
 
@@ -74,7 +77,6 @@ router.post('/check-cookie', (req, res) => {
           );
         }
       } else {
-        console.log('There\'s an error tho');
         res
           .status(400)
           .send(
@@ -85,10 +87,12 @@ router.post('/check-cookie', (req, res) => {
   } else if (req.body.userID) {
     console.log('Session =>', req.session);
     console.log('Null session');
-    const sessionID = req.body.session;
-    const userID = req.body.userID;
+    // const sessionID = req.body.session;
 
-    User.findById(userID)
+    // destructure and rename 'session' to 'sessionID'
+    const { userID, session: sessionID } = req.body;
+
+    findUserById(userID)
       .then(user => {
         if (user!.Session) {
           user!.findSession(sessionID, function(err: any, sess: any) {
@@ -130,6 +134,10 @@ router.post('/check-cookie', (req, res) => {
               console.log('Session does not exist!');
 
               // So make new session for user...
+              // Maybe we can do this =>
+              /**
+               * res.redirect('/session/new')
+               */
             }
           });
         }
@@ -211,7 +219,7 @@ router.post('/check-cookie', (req, res) => {
 
     // tslint:disable-next-line: no-shadowed-variable
 
-    const USER = new User();
+    const USER = newUser();
 
     // USER.Session = req.sessionID as string;
     console.log('Saved Session => ', req.sessionID);

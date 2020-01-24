@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { newUser } from '@/services/users.service';
+import { newUser } from '../services/users.service';
 
 /**
  * createNewUser

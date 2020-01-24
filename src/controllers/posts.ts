@@ -7,8 +7,8 @@ import {
 import { Router } from 'express';
 import { Socket } from 'socket.io';
 import { store, io } from '../server';
-import logger from '@/utils/logger';
-import { findUserById, addUserEvent } from '@/services/users.service';
+import logger from '../utils/logger';
+import { findUserById, addUserEvent } from '../services/users.service';
 const router = Router();
 
 const sortByDateCreated = { createdAt: -1 };
@@ -24,7 +24,7 @@ const listener = function(socket: Socket) {
     // The userID *should* be part of the session object like for reals...
     const userID = socket.handshake.session!.userID;
 
-    console.log('User Session => ', socket.handshake.sessionID);
+    console.log('Post created by User => ', socket.handshake.sessionID);
 
     const POST = await newPost(post);
 
@@ -123,7 +123,6 @@ const listener = function(socket: Socket) {
 
 router.get('/', async (req, res) => {
   await fetchPosts()
-    .populate('connections')
     .populate('chats')
     .sort(sortByDateCreated)
     // tslint:disable-next-line: no-shadowed-variable

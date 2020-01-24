@@ -33,7 +33,7 @@ require('dotenv').config();
 
 app.use(
   require('cors')({
-    origin: 'http://10.3.91.21:8080', // Allow CORS from this domain (the frontend)
+    origin: 'http://localhost:8080', // Allow CORS from this domain (the frontend)
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'UPDATE', 'OPTIONS'],
     credentials: true,
   })
@@ -101,7 +101,7 @@ const Session = session({
   secret: 'thisisasecret:)',
   cookie: {
     maxAge: 60000 * 60 * 24 * 14,
-    domain: '10.3.91.21',
+    domain: 'localhost',
     secure: 'auto',
     sameSite: true,
     path: '/',
@@ -120,10 +120,15 @@ store.on('error', function(error) {
 // Use Sessions o
 app.use(Session);
 
+// Share Express session with SocketIO
 io.use(sharedSession(Session));
+
+/* ======= Routes ====== */
 
 app.use('/app', router);
 app.use('/api', api);
+
+/* ======= Routes ====== */
 
 app.use('/', (req, res) => {
   res
@@ -187,9 +192,7 @@ io.on('connection', function(socket: i.Socket) {
 
   socket.handshake.session!.onlineStart = new Date();
   socket.handshake.session!.socketID = socket.id;
-  if (!socket.handshake.session!.events) {
-    socket.handshake.session!.events = [];
-  }
+
   socket.handshake.session!.save((err: Error) => {
     if (err) {
       logger.error('Error in saving session! => ', err);
@@ -204,8 +207,7 @@ io.on('connection', function(socket: i.Socket) {
     // TODO: Add lastSeen functionality
     // Session object still avialable
     // so update lastSeen from here...
-    console.log();
-    logger.info(`Disconnected client =>  ${socket.handshake.session}`);
+    logger.info(`Disconnected client =>  ${socket.handshake.session!.id}`);
   });
   // Now each session has it's socketID
 });
@@ -225,25 +227,5 @@ io.on('connection', connections.listener);
 
 // Last last
 server.listen(port, function() {
-  logger.info(`App listening on localhost:${port}`);
+  logger.info(`App listening on port ${port}`);
 });
-
-/* ==============ROUTES (for testing only; remove soon) =============== */
-
-app.use('/public', express.static(path.join(__dirname, 'public')));
-
-// o boy
-
-// app.use(function(req, res, next) {
-//   res.header('Access-Control-Allow-Credentials', 'true');
-//   res.header('Access-Control-Allow-Origin', '*');
-//   res.header(
-//     'Access-Control-Allow-Methods',
-//     'GET,PUT,POST,DELETE,UPDATE,OPTIONS'
-//   );
-//   res.header(
-//     'Access-Control-Allow-Headers',
-//     'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept'
-//   );
-//   next();
-// });
