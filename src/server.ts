@@ -52,12 +52,16 @@ import config from '../configuration/environment';
 
 const port = process.env.PORT || 3000;
 const stage = process.env.NODE_ENV!.trim();
-const host = config[stage as string].MONGO_URL;
-// User Sockets
+
+let dbstring = config[stage as string].MONGO_URL;
+
+if (process.env.NODE_ENV === 'prod') {
+  dbstring = process.env.PROD_MONGO_URL!.trim();
+}
 
 // MongoDB set up
 mongoose
-  .connect(config[stage as string].MONGO_URL, {
+  .connect(dbstring, {
     useNewUrlParser: true,
   })
   .then(client => {
@@ -86,7 +90,7 @@ mongoose.set('useCreateIndex', true);
 // MongoDB Store initiliazation
 const store = new MongoDBStore(
   {
-    uri: config[stage as string].MONGO_URL,
+    uri: dbstring,
     collection: 'Sessions',
   },
   err => {
