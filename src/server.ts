@@ -33,7 +33,7 @@ require('dotenv').config();
 
 app.use(
   require('cors')({
-    origin: 'http://localhost:8080', // Allow CORS from this domain (the frontend)
+    origin: 'https://wegive.me', // Allow CORS from this domain (the frontend)
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'UPDATE', 'OPTIONS'],
     credentials: true,
   })
@@ -100,7 +100,7 @@ const Session = session({
   secret: 'thisisasecret:)',
   cookie: {
     maxAge: 60000 * 60 * 24 * 14,
-    domain: 'localhost',
+    domain: 'wegive.me',
     secure: 'auto',
     sameSite: true,
     path: '/',
