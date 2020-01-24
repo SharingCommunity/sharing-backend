@@ -33,7 +33,7 @@ router.get('/logout', (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.post('/bruh', checkSession, refreshSession as RequestHandler, createNewUser);
+router.post('/check-cookie', checkSession, refreshSession as RequestHandler, createNewUser);
 
 // Check cookie bro
 
@@ -43,7 +43,7 @@ router.post('/bruh', checkSession, refreshSession as RequestHandler, createNewUs
 // send the new user object to the client so they can update their localStorage...
 // If the client does... just send back their old object
 
-router.post('/check-cookie', (req, res) => {
+router.post('/check-cookie-old', (req, res) => {
   // If Session is there!
 
   // const payload = JSON.parse(req.body);

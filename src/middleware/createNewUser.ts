@@ -26,7 +26,7 @@ export const createNewUser = async (req: Request, res: Response) => {
 
       req.session!.save((err: any) => {
         if (err) {
-          res.status(400).send(
+         return res.status(400).send(
             JSON.stringify({
               error: true,
               message: 'Error in authenticating user',
@@ -42,7 +42,7 @@ export const createNewUser = async (req: Request, res: Response) => {
           u.Session = req.sessionID as string;
           u.save();
 
-          res.status(200).send(
+          return res.status(200).send(
             JSON.stringify({
               erorr: false,
               message: 'Client is authenticated',
@@ -57,7 +57,7 @@ export const createNewUser = async (req: Request, res: Response) => {
       // Here there is an error is saving the user
       console.log('Error in creating user', err);
 
-      res.status(400).send(
+      return res.status(400).send(
         JSON.stringify({
           error: true,
           message: 'Error in authenticating user',

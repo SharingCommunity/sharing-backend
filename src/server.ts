@@ -146,6 +146,7 @@ io.use(function(socket: any, next: any) {
         if (!err) {
           if (sess) {
             if (process.env.NODE_ENV === 'dev') {
+              console.log('Client connected!')
               logger.log('info', 'Client Connected!');
             }
             next();
@@ -153,6 +154,7 @@ io.use(function(socket: any, next: any) {
             if (process.env.NODE_ENV === 'dev') {
               console.log('Invalid Cookie!');
             }
+            console.log('Invalid cookie')
             next(new Error('Cookie is expired!'));
           }
         } else {
@@ -189,11 +191,14 @@ io.on('connection', function(socket: i.Socket) {
     logger.log('info', 'Client Connected to socket');
   }
 
+  console.log('Client connected to socket')
+
   socket.handshake.session!.onlineStart = new Date();
   socket.handshake.session!.socketID = socket.id;
 
   socket.handshake.session!.save((err: Error) => {
     if (err) {
+      console.log('Errror in saving session! =>', err)
       logger.error('Error in saving session! => ', err);
     }
   });
@@ -206,6 +211,7 @@ io.on('connection', function(socket: i.Socket) {
     // TODO: Add lastSeen functionality
     // Session object still avialable
     // so update lastSeen from here...
+    console.log(' -- Disconnected client --')
     logger.info(`Disconnected client =>  ${socket.handshake.session!.id}`);
   });
   // Now each session has it's socketID
