@@ -1,8 +1,8 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IConnection extends Document {
-  requested: string;
-  offered: string;
+  askingPost: string;
+  givingPost: string;
   fulfilled: boolean;
   seen: boolean;
 }
@@ -17,8 +17,8 @@ const ConnectionSchema: Schema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    requested: { type: mongoose.Schema.Types.ObjectId, ref: 'Post' },
-    offered: { type: mongoose.Schema.Types.ObjectId, ref: 'Post' },
+    askingPost: { type: mongoose.Schema.Types.ObjectId, ref: 'Post' },
+    givingPost: { type: mongoose.Schema.Types.ObjectId, ref: 'Post' },
   },
   { timestamps: true }
 );

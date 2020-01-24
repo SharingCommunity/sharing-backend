@@ -2,7 +2,8 @@
 import * as posts from './controllers/posts';
 import * as chats from './controllers/chats';
 import * as user from './controllers/users';
-
+import api from './controllers';
+import router from './routers';
 // modules
 import express from 'express';
 import http from 'http';
@@ -15,6 +16,10 @@ import sharedSession from 'express-socket.io-session';
 import mStore from 'connect-mongodb-session';
 import cookie from 'cookie';
 import mongoose from 'mongoose';
+import helmet from 'helmet';
+
+// Logger
+import logger from './utils/logger';
 
 // Middleware and helper functions
 import { auth } from './utils/middleware';
@@ -28,7 +33,7 @@ require('dotenv').config();
 
 app.use(
   require('cors')({
-    origin: ['http://localhost:8080'], // Allow CORS from this domain (the frontend)
+    origin: 'http://localhost:8080', // Allow CORS from this domain (the frontend)
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'UPDATE', 'OPTIONS'],
     credentials: true,
   })
@@ -37,6 +42,8 @@ app.use(
 app.use(bodyparser.json());
 
 app.use(bodyparser.urlencoded({ extended: true }));
+
+app.use(helmet());
 
 // Disable the 'x-powered-by' in our responses
 app.disable('x-powered-by');
@@ -55,16 +62,18 @@ mongoose
   })
   .then(client => {
     app.locals.db = client.connection.db;
-    console.log(
+    logger.log(
+      'info',
       `Connection to ${client.connection.db.databaseName} database successful!`
     );
   })
   .catch(err => {
-    console.error(`Error in connecting to database: `, err);
+    // console.error(`Error in connecting to database: `, err);
+    logger.error('Error connecting to database', [err]);
   });
 
 mongoose.connection.on('error', () => {
-  console.log('Error occured in database connection');
+  logger.error('Error occured in database connection');
 });
 
 mongoose.set('useFindAndModify', false);
@@ -82,14 +91,21 @@ const store = new MongoDBStore(
   },
   err => {
     if (err) {
-      console.log('Error connecting Store to MongoDB => ', err);
+      logger.error('Error connecting Store to MongoDB => ', err);
     }
   }
 );
 
 const Session = session({
+  name: 'sharing.sid',
   secret: 'thisisasecret:)',
-  cookie: { maxAge: 60000 * 60 * 24 * 14, secure: 'auto', path: '/' },
+  cookie: {
+    maxAge: 60000 * 60 * 24 * 14,
+    domain: 'localhost',
+    secure: 'auto',
+    sameSite: true,
+    path: '/',
+  },
   store,
   saveUninitialized: false,
   resave: false,
@@ -104,24 +120,57 @@ store.on('error', function(error) {
 // Use Sessions o
 app.use(Session);
 
-// Socket.io Instance
-io.use(function(socket, next) {
-  Session(socket.request, socket.request.res, next);
-});
-
+// Share Express session with SocketIO
 io.use(sharedSession(Session));
 
-// For preventing clients from connecting if they don't have the cookiess
+/* ======= Routes ====== */
+
+app.use('/app', router);
+app.use('/api', api);
+
+/* ======= Routes ====== */
+
+app.use('/', (req, res) => {
+  res
+    .set('content-type', 'text/html')
+    .status(200)
+    .send('<h4>Hi! Welcome to the Sharing Api</h4>');
+});
+
 io.use(function(socket, next) {
-  const cookies = cookie.parse(socket.request.headers.cookie);
-  if (cookies['connect.sid']) {
-    console.log(`Client connected`);
-    next();
-  } else {
-    console.log('No cookie sent, reload the frontend');
-    next(new Error('Not authorized man!'));
+  const sessionID = socket.handshake.sessionID as string;
+
+  if (socket.request.headers.cookie) {
+    const cookies = cookie.parse(socket.request.headers.cookie);
+    if (cookies['sharing.sid']) {
+      store.get(sessionID, (err, sess) => {
+        if (!err) {
+          if (sess) {
+            if (process.env.NODE_ENV === 'dev') {
+              logger.log('info', 'Client Connected!');
+            }
+            next();
+          } else {
+            if (process.env.NODE_ENV === 'dev') {
+              console.log('Invalid Cookie!');
+            }
+            next(new Error('Cookie is expired!'));
+          }
+        } else {
+          next(err);
+        }
+      });
+    } else {
+      // console.log('No cookie sent, reload the frontend');
+      next(new Error('Not authorized man!'));
+    }
   }
 });
+
+// Socket.io Instance
+// io.use(function(socket, next) {
+//   Session(socket.request, socket.request.res || {}, next);
+// });
 
 // TODO: look at a better way to pass the io and store objects
 
@@ -137,13 +186,28 @@ import * as connections from './controllers/connections';
 io.on('connection', function(socket: i.Socket) {
   // let sessionID = socket.handshake.session.id;
 
-  console.log('Connection!');
+  if (process.env.NODE_ENV === 'dev') {
+    logger.log('info', 'Client Connected to socket');
+  }
 
+  socket.handshake.session!.onlineStart = new Date();
   socket.handshake.session!.socketID = socket.id;
+
   socket.handshake.session!.save((err: Error) => {
     if (err) {
-      console.log('Error in saving session! => ', err);
+      logger.error('Error in saving session! => ', err);
     }
+  });
+
+  socket.on('disconnect', function() {
+    // if(reason === 'io server disconnect'){
+    //   socket.connect();
+    // }
+
+    // TODO: Add lastSeen functionality
+    // Session object still avialable
+    // so update lastSeen from here...
+    logger.info(`Disconnected client =>  ${socket.handshake.session!.id}`);
   });
   // Now each session has it's socketID
 });
@@ -163,45 +227,5 @@ io.on('connection', connections.listener);
 
 // Last last
 server.listen(port, function() {
-  console.log(`App listening on localhost:${port}`);
+  logger.info(`App listening on port ${port}`);
 });
-
-/* ==============ROUTES (for testing only; remove soon) =============== */
-
-app.use('/public', express.static(path.join(__dirname, 'public')));
-
-// o boy
-
-// app.use(function(req, res, next) {
-//   res.header('Access-Control-Allow-Credentials', 'true');
-//   res.header('Access-Control-Allow-Origin', '*');
-//   res.header(
-//     'Access-Control-Allow-Methods',
-//     'GET,PUT,POST,DELETE,UPDATE,OPTIONS'
-//   );
-//   res.header(
-//     'Access-Control-Allow-Headers',
-//     'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept'
-//   );
-//   next();
-// });
-
-// app.get('/api/connect', (req, res) => {
-//   if (req.session.views) {
-//     req.session.views++;
-//     res.setHeader('Content-Type', 'text/html');
-//     res.write('<p>views: ' + req.session.views + '</p>');
-//     res.write('<p>expires in: ' + req.session.cookie.maxAge / 1000 + 's</p>');
-//     res.end();
-//     console.log('From /api/connect: ', req.session.cookie);
-//   } else {
-//     req.session.views = 1;
-//     res.end('welcome to the session demo. refresh!');
-//     console.log('From /api/connect: ', req.session.cookie);
-//   }
-// });
-
-// Endpoints :b
-app.use('/api/posts', auth, posts.router);
-app.use('/api/chats', auth, chats.router);
-app.use('/api/user', user.router);

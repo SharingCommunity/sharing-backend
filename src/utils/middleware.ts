@@ -1,10 +1,6 @@
-import express from 'express';
+import { RequestHandler } from 'express';
 
-const auth: express.RequestHandler = (
-  req: express.Request,
-  res: express.Response,
-  next
-) => {
+const auth: RequestHandler = (req, res, next) => {
   if (req.session!.userID) {
     console.log('User authenticated!', req.sessionID);
     next();
@@ -18,8 +14,6 @@ const auth: express.RequestHandler = (
       })
     );
     // next();
-    // End the request :)
-    res.end();
   }
 };
 

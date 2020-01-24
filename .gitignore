@@ -21,3 +21,7 @@
 
 # configuration files e.g environment settings
 /configuration
+
+# NPM logs :)
+
+npm-debug.log
