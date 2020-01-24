@@ -33,7 +33,7 @@ require('dotenv').config();
 
 app.use(
   require('cors')({
-    origin: 'https://wegive.me', // Allow CORS from this domain (the frontend)
+    origin: /wegive\.me$/,
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'UPDATE', 'OPTIONS'],
     credentials: true,
   })
