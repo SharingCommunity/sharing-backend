@@ -48,12 +48,12 @@ app.use(helmet());
 // Disable the 'x-powered-by' in our responses
 app.disable('x-powered-by');
 
-import config from '../configuration/environment';
+// import config from '../configuration/environment';
 
 const port = process.env.PORT || 3000;
 const stage = process.env.NODE_ENV!.trim();
 
-let dbstring = config[stage as string].MONGO_URL;
+let dbstring = 'mongodb://localhost:27017/sharing';
 
 if (process.env.NODE_ENV === 'prod') {
   dbstring = process.env.PROD_MONGO_URL!.trim();
@@ -214,6 +214,15 @@ io.on('connection', function(socket: i.Socket) {
   });
   // Now each session has it's socketID
 });
+
+/***
+ * interface IEnvConfig {
+  MONGO_URL: string;
+  PORT: number | string;
+  HOST: string;
+  [keys: string]: any;
+}
+ */
 
 // TODO: pass a central kini to carry all
 //  of these guys
