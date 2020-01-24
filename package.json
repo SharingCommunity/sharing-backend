@@ -6,8 +6,8 @@
   "scripts": {
     "tsc": "tsc",
     "dev": "set NODE_ENV=dev && ts-node-dev --respawn --transpileOnly ./src/server.ts",
-    "prod": "tsc && node ./build/src/server.js",
-    "start": "set NODE_ENV=dev && npm run prod",
+    "prod": "set NODE_ENV=prod && tsc -p . && node ./build/src/server.js",
+    "start": "set NODE_ENV=prod && npm run prod",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

@@ -1,1 +1,1 @@
-web: set NODE_ENV=dev && npm run prod
+web: npm run prod
