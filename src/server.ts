@@ -59,7 +59,6 @@ if (process.env.NODE_ENV === 'prod') {
   dbstring = process.env.PROD_MONGO_URL!.trim();
 }
 
-// MongoDB set up
 mongoose
   .connect(dbstring, {
     useNewUrlParser: true,
