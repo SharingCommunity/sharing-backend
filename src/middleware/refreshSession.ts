@@ -1,6 +1,8 @@
 import { store } from '../server';
 import { findUserById } from '../services/users.service';
-import { RequestHandler } from 'express';
+import { RequestHandler, Response, NextFunction, Request } from 'express';
+import { RequestWithSession } from '../utils/interfaces';
+import { ParamsDictionary } from 'express-serve-static-core';
 
 /**
  * refreshSession
@@ -13,9 +15,9 @@ import { RequestHandler } from 'express';
  * @param res
  * @param next
  */
-export const refreshSession: RequestHandler = async (req, res, next) => {
-  if (req.body.session) {
-    const { userID, session: sessionID } = req.body;
+export const refreshSession = async (req: RequestWithSession, res: Response, next: NextFunction) => {
+  if (req.body) {
+    const { userID, session: sessionID } = req;
 
     findUserById(userID)
       .then(user => {
@@ -56,9 +58,9 @@ export const refreshSession: RequestHandler = async (req, res, next) => {
               req.session!.popo = 'No.';
               req.session!.userID = user!._id;
 
-              req.session!.save(err => {
+              req.session!.save((err: any) => {
                 if (err) {
-                  res.status(400).send(
+                  return res.status(400).send(
                     JSON.stringify({
                       error: true,
                       message: 'Error in authenticating user',
@@ -71,7 +73,7 @@ export const refreshSession: RequestHandler = async (req, res, next) => {
                   user!.Session = req.sessionID as string;
                   user!.save();
 
-                  res.status(200).send(
+                  return res.status(200).send(
                     JSON.stringify({
                       erorr: false,
                       message: 'Client is authenticated',
@@ -88,9 +90,9 @@ export const refreshSession: RequestHandler = async (req, res, next) => {
           req.session!.popo = 'No.';
           req.session!.userID = user!._id;
 
-          req.session!.save(err => {
+          return req.session!.save((err: any) => {
             if (err) {
-              res.status(400).send(
+              return res.status(400).send(
                 JSON.stringify({
                   error: true,
                   message: 'Error in authenticating user',
@@ -103,7 +105,7 @@ export const refreshSession: RequestHandler = async (req, res, next) => {
               user!.Session = req.sessionID as string;
               user!.save();
 
-              res.status(200).send(
+              return res.status(200).send(
                 JSON.stringify({
                   erorr: false,
                   message: 'Client is authenticated',

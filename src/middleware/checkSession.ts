@@ -1,5 +1,7 @@
 import { store } from '../server';
-import { RequestHandler } from 'express';
+import { RequestHandler, Response, NextFunction } from 'express';
+import { RequestWithSession } from '../utils/interfaces';
+import { Request } from 'express-serve-static-core';
 
 /**
  * checkSession
@@ -10,7 +12,7 @@ import { RequestHandler } from 'express';
  * @param res
  * @param next
  */
-export const checkSession: RequestHandler = async (req, res, next) => {
+export const checkSession: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
   if (req.session!.socketID) {
     const sessionID = req.sessionID as string;
 

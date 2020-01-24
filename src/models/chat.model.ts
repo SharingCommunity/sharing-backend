@@ -26,11 +26,11 @@ const ChatSchema: Schema = new mongoose.Schema(
 
 // Add Chat to post
 
-ChatSchema.post('save', function(this: IChat, next) {
+ChatSchema.post('save', function(this: IChat, next: any) {
   Post.findOneAndUpdate(
     { _id: this.post },
     { $push: { chats: this._id } },
-    (err, doc) => {
+    (err: any, doc: any) => {
       if (!err) {
         console.log('Update successful!');
       } else {

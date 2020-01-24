@@ -22,7 +22,7 @@ export interface IUser extends IUserDocument {
   Session: string;
   Posts: [];
   Events: [];
-  findSession(session: string, callback: any): void;
+  findSession(session: string | undefined, callback: any): void;
 }
 
 export interface IUserModel extends Model<IUser> {}

@@ -133,11 +133,11 @@ const PostSchema: Schema = new mongoose.Schema(
 
 // TODO:
 // Test this out
-PostSchema.post('save', function(this: IPost, next) {
+PostSchema.post('save', function(this: IPost, next: any) {
   User.findByIdAndUpdate(
     this.user,
     { $push: { Posts: this._id } },
-    (err, doc) => {
+    (err: any, doc: any) => {
       if (!err) {
         console.log('Update successful!');
       } else {

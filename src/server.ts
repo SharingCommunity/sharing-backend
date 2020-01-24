@@ -63,14 +63,14 @@ mongoose
   .connect(dbstring, {
     useNewUrlParser: true,
   })
-  .then(client => {
+  .then((client: any) => {
     app.locals.db = client.connection.db;
     logger.log(
       'info',
       `Connection to ${client.connection.db.databaseName} database successful!`
     );
   })
-  .catch(err => {
+  .catch((err: any) => {
     // console.error(`Error in connecting to database: `, err);
     logger.error('Error connecting to database', [err]);
   });
@@ -92,7 +92,7 @@ const store = new MongoDBStore(
     uri: dbstring,
     collection: 'Sessions',
   },
-  err => {
+  (err: any) => {
     if (err) {
       logger.error('Error connecting Store to MongoDB => ', err);
     }
@@ -140,13 +140,13 @@ app.use('/', (req, res) => {
     .send('<h4>Hi! Welcome to the Sharing Api</h4>');
 });
 
-io.use(function(socket, next) {
+io.use(function(socket: any, next: any) {
   const sessionID = socket.handshake.sessionID as string;
 
   if (socket.request.headers.cookie) {
     const cookies = cookie.parse(socket.request.headers.cookie);
     if (cookies['sharing.sid']) {
-      store.get(sessionID, (err, sess) => {
+      store.get(sessionID, (err: any, sess: any) => {
         if (!err) {
           if (sess) {
             if (process.env.NODE_ENV === 'dev') {

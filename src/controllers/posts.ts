@@ -30,7 +30,7 @@ const listener = function(socket: Socket) {
 
     POST.participants.push(userID);
 
-    POST.save((err, p) => {
+    POST.save((err: any, p: IPost) => {
       if (err) {
         logger.log('error', 'Error saving post =>' + err);
         socket.emit('ERROR', { error: true, message: 'Error Saving Post' });
@@ -45,7 +45,7 @@ const listener = function(socket: Socket) {
   });
 
   // TODO: send a notification to the owner of the post when this happens
-  socket.on('start-sharing', async function(id) {
+  socket.on('start-sharing', async function(id: any) {
     const query = {
       status: 'Sharing Ongoing',
       $push: { participants: socket.handshake.session!.userID },
@@ -60,7 +60,7 @@ const listener = function(socket: Socket) {
       //  todo:  Prevent from adding the same participant 2ce.
 
       try {
-        doc!.participants.forEach(u => {
+        doc!.participants.forEach((u: any) => {
           findUserById(u)
             .then(u => {
               if (u) {
@@ -109,12 +109,12 @@ const listener = function(socket: Socket) {
       // I think we should just be sending errors to the user if any occur :)
 
       addUserEvent(doc!.user, event)
-        .then(d => {
+        .then(() => {
           logger.info('Event added successfully!');
         })
-        .catch(e => {
-          logger.error('Error in adding event ' + e);
-          throw e;
+        .catch((err: any) => {
+          logger.error('Error in adding event ' + err);
+          throw err;
         });
       // Send a notification to the user that someone has looked at his post
     });
@@ -126,14 +126,14 @@ router.get('/', async (req, res) => {
     .populate('chats')
     .sort(sortByDateCreated)
     // tslint:disable-next-line: no-shadowed-variable
-    .then(posts => {
+    .then((posts: IPost[]) => {
       res
         .status(200)
         .send(
           JSON.stringify({ error: false, message: 'Posts', results: posts })
         );
     })
-    .catch(err => {
+    .catch((err: any) => {
       res
         .status(400)
         .send(

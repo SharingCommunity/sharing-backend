@@ -10,21 +10,16 @@ const listener = function(socket: Socket) {
   // events.connectionEvents.on('new_connection', function(con: IConnection) {
   //   // socket.broadcast.emit("new_connection", con);
   //   /*  PLAN =>
-
   //       - Find the two posts involved,
   //       - Then find the two sessions involved,
   //       - Find the two sockets involved from the sessions,
   //       - Depending on the type of posts: (givingPost or askingPost)
   //         alert the sockets.
-
   //      */
-
   //   const askingPost = con.askingPost;
   //   const givingPost = con.givingPost;
-
   //   let askingUser;
   //   let givingUser;
-
   //   Post.findById(askingPost, (err, doc) => {
   //     if (err) {
   //       throw err;
@@ -36,7 +31,6 @@ const listener = function(socket: Socket) {
   //       console.log('Post does not exist');
   //     }
   //   });
-
   //   Post.findById(givingPost, (err, doc) => {
   //     if (err) {
   //       throw err;
@@ -48,7 +42,6 @@ const listener = function(socket: Socket) {
   //       console.log('Post does not exist');
   //     }
   //   });
-
   //   // const request_socket = Store.get(askingUser, (err, sess) => {
   //   //   if (err) {
   //   //     console.error(err);
@@ -56,7 +49,6 @@ const listener = function(socket: Socket) {
   //   //     return sess.socketID;
   //   //   }
   //   // });
-
   //   // const offer_socket = Store.get(offerUser, (err, sess) => {
   //   //   if (err) {
   //   //     console.error(err);
@@ -64,7 +56,6 @@ const listener = function(socket: Socket) {
   //   //     return sess.socketID;
   //   //   }
   //   // });
-
   //   // io.to(request_socket).emit("new_request", con);
   //   // io.to(offer_socket).emit("new_offer", con);
   // });

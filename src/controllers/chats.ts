@@ -7,7 +7,7 @@ const router = Router();
 
 const listener = function(socket: Socket) {
   // console.log("Connection from chat?"+socket.id);
-  socket.on('chat', function(chat) {
+  socket.on('chat', function(chat: any) {
     // TODO: inform particpants of new chat
     // Send a notification to other participant when there's a new chat
     // message
@@ -19,7 +19,7 @@ const listener = function(socket: Socket) {
     const CHAT = newChat(chat);
 
     // Save...
-    CHAT.save((err, c) => {
+    CHAT.save((err: any, c: any) => {
       if (err) {
         console.log('Error saving chat => ', err);
         socket.emit('ERROR', { error: true, message: 'Error Saving Chat' });
@@ -38,7 +38,7 @@ const listener = function(socket: Socket) {
         // 5. repeat for the other participant(s).
         // 6. END
 
-        CHAT.participants.forEach(u => {
+        CHAT.participants.forEach((u: any) => {
           findUserById(u)
             .then(u => {
               if (u) {

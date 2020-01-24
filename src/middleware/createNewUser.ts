@@ -1,5 +1,7 @@
-import { RequestHandler } from 'express';
+import { RequestHandler, Response } from 'express';
 import { newUser } from '../services/users.service';
+import { RequestWithSession } from '../utils/interfaces';
+import { Request } from 'express-serve-static-core';
 
 /**
  * createNewUser
@@ -8,7 +10,7 @@ import { newUser } from '../services/users.service';
  * @param req
  * @param res
  */
-export const createNewUser: RequestHandler = async (req, res) => {
+export const createNewUser = async (req: Request, res: Response) => {
   // Here the user is most likely a new one or a new device so
   // create a new User document!
 
@@ -22,7 +24,7 @@ export const createNewUser: RequestHandler = async (req, res) => {
       req.session!.popo = 'No.';
       req.session!.userID = u._id;
 
-      req.session!.save(err => {
+      req.session!.save((err: any) => {
         if (err) {
           res.status(400).send(
             JSON.stringify({

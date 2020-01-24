@@ -1,6 +1,7 @@
-import { RequestHandler } from 'express';
+import { RequestHandler, Response, NextFunction } from 'express';
+import { RequestWithSession } from './interfaces';
 
-const auth: RequestHandler = (req, res, next) => {
+const auth = (req: RequestWithSession, res: Response, next: NextFunction) => {
   if (req.session!.userID) {
     console.log('User authenticated!', req.sessionID);
     next();

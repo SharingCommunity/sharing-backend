@@ -1,14 +1,15 @@
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { store } from '../server';
 import { newUser, findUserById } from '../services/users.service';
 import { checkSession, refreshSession, createNewUser } from '../middleware';
+import { Request, RequestHandler } from 'express-serve-static-core';
 // import bcrypt from 'bcryptjs';
 
 const router = Router();
 
 // TODO: Rewrite these you may not need them at all...
 
-router.get('/logout', (req, res) => {
+router.get('/logout', (req: Request, res: Response, next: NextFunction) => {
   if (req.sessionID) {
     // store.destroy(req.sessionID, err => {
     //   if (!err) {
@@ -22,7 +23,7 @@ router.get('/logout', (req, res) => {
     // });
 
     // req.se
-    req.session!.destroy(err => {
+    req.session!.destroy((err: any) => {
       if (!err) {
         res.status(200).clearCookie('sharing.sid');
       }
@@ -32,7 +33,7 @@ router.get('/logout', (req, res) => {
   }
 });
 
-router.post('/bruh', checkSession, refreshSession, createNewUser);
+router.post('/bruh', checkSession, refreshSession as RequestHandler, createNewUser);
 
 // Check cookie bro
 
