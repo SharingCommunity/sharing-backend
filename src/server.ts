@@ -30,7 +30,7 @@ require('dotenv').config();
 
 app.use(
   require('cors')({
-    origin: [/wegive\.me$/, 'http://localhost:8080'],
+    origin: /wegive\.me$/,
     // origin: 'http://localhost:8080',
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'UPDATE', 'OPTIONS'],
     credentials: true,
