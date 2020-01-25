@@ -97,8 +97,8 @@ const Session = session({
   secret: 'thisisasecret:)',
   cookie: {
     maxAge: 60000 * 60 * 24 * 30,
-    // domain: '.wegive.me',
-    domain: 'localhost',
+    domain: '.wegive.me',
+    // domain: 'localhost',
     secure: 'auto',
     sameSite: 'lax',
     httpOnly: true,
