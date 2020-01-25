@@ -33,9 +33,8 @@ const listener = function(socket: Socket) {
     POST.save((err: any, p: IPost) => {
       if (err) {
         logger.log('error', 'Error saving post =>' + err);
-        socket.emit('ERROR', { error: true, message: 'Error Saving Post' });
+        socket.emit('error', { error: true, message: 'Error Saving Post' });
       } else {
-        // socket.emit('post', p);
         // socket.broadcast.emit('new_post', p);
 
         // Send to all connected clients...
@@ -45,79 +44,81 @@ const listener = function(socket: Socket) {
   });
 
   // TODO: send a notification to the owner of the post when this happens
-  socket.on('start-sharing', async function(id: any) {
+  socket.on('start_sharing', function(id: any) {
     const query = {
-      status: 'Sharing Ongoing',
+      status: 'ongoing',
       $push: { participants: socket.handshake.session!.userID },
     };
 
     const options = { new: true };
 
-    await findPostAndUpdate(id, query, options).then(doc => {
-      console.log('Update successful!');
-      // Send 'post_updated' to  the users involved!
+    findPostAndUpdate(id, query, options)
+      .then(doc => {
 
-      //  todo:  Prevent from adding the same participant 2ce.
+        try {
+          doc!.participants.forEach((u: any) => {
+            findUserById(u)
+              .then(u => {
+                if (u) {
+                  store.get(u.Session, (err: any, sess: any) => {
+                    if (sess) {
+                      // socket.broadcast
+                      //   .to(sess.socketID)
+                      //   .emit('post_updated', doc);
+                      io.to(sess.socketID).emit('post_updated', doc);
+                    }
+                  });
+                }
+                // socket.broadcast.to(socketID).emit('post_updated', doc);
+              })
+              .catch(err => {
+                throw err;
+              });
+          });
+        } catch (error) {
+          logger.error('Error! ' + error);
+        }
 
-      try {
-        doc!.participants.forEach((u: any) => {
-          findUserById(u)
-            .then(u => {
-              if (u) {
-                store.get(u.Session, (err: any, sess: any) => {
-                  if (sess) {
-                    // socket.broadcast
-                    //   .to(sess.socketID)
-                    //   .emit('post_updated', doc);
-                    io.to(sess.socketID).emit('post_updated', doc);
-                    console.log('Socket IDs => ', sess.socketID);
-                  }
-                });
-              }
-              // socket.broadcast.to(socketID).emit('post_updated', doc);
-            })
-            .catch(err => {
-              throw err;
-            });
-        });
-      } catch (error) {
-        logger.error('Error! ' + error);
-      }
+        // socket.broadcast.emit('post_updated', doc);
 
-      // socket.broadcast.emit('post_updated', doc);
+        const event = {
+          error: false,
+          type: 2,
+          post: doc!._id,
+          time: new Date(),
+          seen: false,
+          message: 'One of your posts in now active!',
+        };
 
-      const event = {
-        error: false,
-        type: 2,
-        post: doc!._id,
-        time: new Date(),
-        message: 'One of your posts in now active!',
-      };
+        // Get the user socketID and then send the post event;
 
-      // Get the user socketID and then send the post event;
+        // doc!.participants.forEach()
 
-      // doc!.participants.forEach()
+        // findUserById(doc!.user)
+        //   .then(socketID => {
+        //     socket.broadcast.to(socketID).emit('POST_EVENT', event);
+        //   })
+        //   .catch(err => {
+        //     throw err;
+        //   });
 
-      // findUserById(doc!.user)
-      //   .then(socketID => {
-      //     socket.broadcast.to(socketID).emit('POST_EVENT', event);
-      //   })
-      //   .catch(err => {
-      //     throw err;
-      //   });
+        // I think we should just be sending errors to the user if any occur :)
 
-      // I think we should just be sending errors to the user if any occur :)
-
-      addUserEvent(doc!.user, event)
-        .then(() => {
-          logger.info('Event added successfully!');
-        })
-        .catch((err: any) => {
-          logger.error('Error in adding event ' + err);
-          throw err;
-        });
-      // Send a notification to the user that someone has looked at his post
-    });
+        addUserEvent(doc!.user, event)
+          .then(() => {
+            logger.info('Event added successfully!');
+          })
+          .catch((err: any) => {
+            logger.error('Error in adding event ' + err);
+            throw err;
+          });
+        // Send a notification to the user that someone has looked at his post
+      })
+      .catch((err: any) => {
+        logger.info('Couldn\'t update post :(');
+        console.log('Couldn\'t update post :(');
+        throw err;
+      });
   });
 };
 

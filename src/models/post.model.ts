@@ -39,7 +39,7 @@ const PostSchema: Schema = new mongoose.Schema(
     },
     status: {
       type: String,
-      default: 'Pending Sharing',
+      default: 'pending',
     },
     connections: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Connection' }],
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
