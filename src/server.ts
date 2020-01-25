@@ -1,7 +1,6 @@
 // controllers
 import * as posts from './controllers/posts';
 import * as chats from './controllers/chats';
-import * as user from './controllers/users';
 import api from './controllers';
 import router from './routers';
 // modules
@@ -9,7 +8,6 @@ import express from 'express';
 import http from 'http';
 import i from 'socket.io';
 import bodyparser from 'body-parser';
-import path from 'path';
 import assert from 'assert';
 import session from 'express-session';
 import sharedSession from 'express-socket.io-session';
@@ -22,7 +20,6 @@ import helmet from 'helmet';
 import logger from './utils/logger';
 
 // Middleware and helper functions
-import { auth } from './utils/middleware';
 
 // server config
 const app = express();
@@ -33,7 +30,8 @@ require('dotenv').config();
 
 app.use(
   require('cors')({
-    origin: /wegive\.me$/,
+    origin: [/wegive\.me$/, 'http://localhost:8080'],
+    // origin: 'http://localhost:8080',
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'UPDATE', 'OPTIONS'],
     credentials: true,
   })
@@ -51,7 +49,6 @@ app.disable('x-powered-by');
 // import config from '../configuration/environment';
 
 const port = process.env.PORT || 3000;
-const stage = process.env.NODE_ENV!.trim();
 
 const dbstring = process.env.MONGO_URL!.trim();
 
@@ -99,10 +96,11 @@ const Session = session({
   name: 'sharing.sid',
   secret: 'thisisasecret:)',
   cookie: {
-    maxAge: 60000 * 60 * 24 * 14,
-    domain: 'wegive.me',
+    maxAge: 60000 * 60 * 24 * 30,
+    domain: '.wegive.me',
     secure: 'auto',
-    sameSite: true,
+    sameSite: 'lax',
+    httpOnly: true,
     path: '/',
   },
   store,
@@ -118,6 +116,8 @@ store.on('error', function(error) {
 
 // Use Sessions o
 app.use(Session);
+
+io.origins(['*wegive.me:*', 'localhost:8080']);
 
 // Share Express session with SocketIO
 io.use(sharedSession(Session));
@@ -142,27 +142,33 @@ io.use(function(socket: any, next: any) {
   if (socket.request.headers.cookie) {
     const cookies = cookie.parse(socket.request.headers.cookie);
     if (cookies['sharing.sid']) {
-      store.get(sessionID, (err: any, sess: any) => {
-        if (!err) {
-          if (sess) {
-            if (process.env.NODE_ENV === 'dev') {
-              console.log('Client connected!')
-              logger.log('info', 'Client Connected!');
+      store.get(
+        sessionID,
+        (err: any, sess: Express.SessionData | null | undefined) => {
+          if (!err) {
+            if (sess) {
+              if (process.env.NODE_ENV!.trim() === 'dev') {
+                console.log('Client connected!');
+                logger.log('info', 'Client Connected!');
+              }
+              console.log('Cookie found');
+              next();
+            } else {
+              if (process.env.NODE_ENV!.trim() === 'dev') {
+                console.log('Invalid Cookie!');
+              }
+              console.log('Invalid cookie');
+              next(new Error('Cookie is expired!'));
             }
-            next();
           } else {
-            if (process.env.NODE_ENV === 'dev') {
-              console.log('Invalid Cookie!');
-            }
-            console.log('Invalid cookie')
-            next(new Error('Cookie is expired!'));
+            next(err);
           }
-        } else {
-          next(err);
         }
-      });
+      );
     } else {
-      // console.log('No cookie sent, reload the frontend');
+      // delete session :)
+      store.destroy(sessionID);
+      console.log('No cookie sent man, destroying session :)');
       next(new Error('Not authorized man!'));
     }
   }
@@ -187,34 +193,35 @@ import * as connections from './controllers/connections';
 io.on('connection', function(socket: i.Socket) {
   // let sessionID = socket.handshake.session.id;
 
-  if (process.env.NODE_ENV === 'dev') {
+  if (process.env.NODE_ENV!.trim() === 'dev') {
     logger.log('info', 'Client Connected to socket');
   }
 
-  console.log('Client connected to socket')
+  console.log('Client connected to socket');
 
   socket.handshake.session!.onlineStart = new Date();
+  socket.handshake.session!.online = true;
   socket.handshake.session!.socketID = socket.id;
 
   socket.handshake.session!.save((err: Error) => {
     if (err) {
-      console.log('Errror in saving session! =>', err)
+      console.log('Errror in saving session! =>', err);
       logger.error('Error in saving session! => ', err);
     }
   });
 
   socket.on('disconnect', function() {
-    // if(reason === 'io server disconnect'){
-    //   socket.connect();
-    // }
+    socket.handshake.session!.lastOnline = new Date();
+    socket.handshake.session!.online = false;
 
-    // TODO: Add lastSeen functionality
-    // Session object still avialable
-    // so update lastSeen from here...
-    console.log(' -- Disconnected client --')
+    socket.handshake.session!.save((err: Error) => {
+      if (err) {
+        console.log('Errror in saving session! =>', err);
+        logger.error('Error in saving session! => ', err);
+      }
+    });
     logger.info(`Disconnected client =>  ${socket.handshake.session!.id}`);
   });
-  // Now each session has it's socketID
 });
 
 /***

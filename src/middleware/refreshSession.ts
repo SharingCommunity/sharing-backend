@@ -15,14 +15,23 @@ import { ParamsDictionary } from 'express-serve-static-core';
  * @param res
  * @param next
  */
-export const refreshSession = async (req: RequestWithSession, res: Response, next: NextFunction) => {
+export const refreshSession = async (
+  req: RequestWithSession,
+  res: Response,
+  next: NextFunction
+) => {
   if (req.body) {
-    const { userID, session: sessionID } = req;
+    const { userID, sessionID } = req.body;
+
+    console.log('Req, body =>', req.body);
 
     findUserById(userID)
       .then(user => {
         if (user!.Session) {
-          user!.findSession(sessionID, function(err: any, sess: any) {
+          user!.findSession(user!.Session, function(
+            err: any,
+            sess: Express.SessionData
+          ) {
             if (sess) {
               // If you find the session it means it's an old one so do this...
               // set a new one, create a new cookie and send session data to client

@@ -17,16 +17,15 @@ export const createNewUser = async (req: Request, res: Response) => {
   const USER = newUser();
 
   // USER.Session = req.sessionID as string;
-  console.log('Saved Session => ', req.sessionID);
 
   USER.save()
     .then(u => {
-      req.session!.popo = 'No.';
+      // req.session!.popo = 'No.';
       req.session!.userID = u._id;
 
       req.session!.save((err: any) => {
         if (err) {
-         return res.status(400).send(
+          return res.status(400).send(
             JSON.stringify({
               error: true,
               message: 'Error in authenticating user',
@@ -37,7 +36,7 @@ export const createNewUser = async (req: Request, res: Response) => {
         } else {
           // User has been crreated
 
-          console.log('Created session => ', req.sessionID);
+          console.log('Created saved session => ', req.sessionID);
 
           u.Session = req.sessionID as string;
           u.save();
