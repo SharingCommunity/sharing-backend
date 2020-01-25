@@ -117,7 +117,7 @@ store.on('error', function(error) {
 // Use Sessions o
 app.use(Session);
 
-io.origins(['*wegive.me:*', 'localhost:8080']);
+// io.origins(['*wegive.me:*']);
 
 // Share Express session with SocketIO
 io.use(sharedSession(Session));
