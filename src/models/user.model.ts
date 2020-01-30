@@ -1,7 +1,7 @@
-import Mongoose, { Model, Schema, Document, model } from 'mongoose';
-import bcrypt from 'bcryptjs';
-import { uniqueNamesGenerator } from 'unique-names-generator';
-import { store } from '../server';
+import Mongoose, { Model, Schema, Document } from 'mongoose';
+// import bcrypt from 'bcryptjs';
+// import { uniqueNamesGenerator } from 'unique-names-generator';
+// import { store } from '../server';
 
 export interface IUserDocument extends Document {
   FirstName: string;

@@ -37,6 +37,9 @@ const PostSchema: Schema = new mongoose.Schema(
     details: {
       type: String,
     },
+    short_name: {
+      type: String
+    },
     status: {
       type: String,
       default: 'pending',
