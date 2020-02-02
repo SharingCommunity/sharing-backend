@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { findUserById } from '../services/users.service';
-import { IUser } from '../models/user.model';
 
 const router = Router();
 
@@ -11,6 +10,7 @@ router.get('/:id', async (req, res) => {
   await findUserById(req.params.id)
     .populate('Posts')
     .populate('Connections')
+    .populate('Events')
     .then((u: any) => {
       if (u) {
         res
@@ -45,6 +45,7 @@ router.get('/:id', async (req, res) => {
 router.get('/:id/events', async (req, res) => {
   await findUserById(req.params.id)
     .select('Events')
+    .populate('Events')
     .then((doc: any) => {
       if (doc) {
         res.status(200).send(

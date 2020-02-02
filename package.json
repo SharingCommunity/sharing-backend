@@ -31,6 +31,7 @@
     "@types/helmet": "0.0.44",
     "@types/mongoose": "^5.5.43",
     "@types/socket.io": "^2.1.4",
+    "@types/web-push": "^3.3.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
     "connect-mongodb-session": "^2.0.5",
@@ -48,6 +49,7 @@
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.7.5",
     "unique-names-generator": "^3.0.0",
+    "web-push": "^3.4.3",
     "winston": "^3.2.1"
   },
   "devDependencies": {}

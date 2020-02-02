@@ -32,7 +32,6 @@ export const createNewUser = async (req: Request, res: Response) => {
               errorMessage: err,
             })
           );
-          throw err;
         } else {
           // User has been crreated
 

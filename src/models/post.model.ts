@@ -4,18 +4,20 @@ import Connection from './connection.model';
 import User from './user.model';
 import mongoose, { Schema, Document } from 'mongoose';
 
-export interface IPost extends Document {
+export interface IPost {
   message: string;
   asking: boolean;
   giving: boolean;
   subject: string;
   details: string;
-  status: string;
+  status: 'pending' | 'completed';
   connections: [];
   participants: string[];
   user: string;
   chats: [];
 }
+
+export interface IPostModel extends IPost, Document {}
 
 const PostSchema: Schema = new mongoose.Schema(
   {
@@ -38,7 +40,7 @@ const PostSchema: Schema = new mongoose.Schema(
       type: String,
     },
     short_name: {
-      type: String
+      type: String,
     },
     status: {
       type: String,
@@ -136,7 +138,7 @@ const PostSchema: Schema = new mongoose.Schema(
 
 // TODO:
 // Test this out
-PostSchema.post('save', function(this: IPost, next: any) {
+PostSchema.post('save', function(this: IPostModel, next: any) {
   User.findByIdAndUpdate(
     this.user,
     { $push: { Posts: this._id } },
@@ -152,4 +154,4 @@ PostSchema.post('save', function(this: IPost, next: any) {
 
 PostSchema.index({ createdAt: 1 }, { expireAfterSeconds: 43200 });
 
-export default mongoose.model<IPost>('Post', PostSchema, 'Posts');
+export default mongoose.model<IPostModel>('Post', PostSchema, 'Posts');

@@ -4,6 +4,7 @@ import { findUserById, addUserEvent } from '../services/users.service';
 import { store, io } from '../server';
 import { newChat } from '../services/chats.service';
 import logger from '../utils/logger';
+import { IEvent } from '../models/event.model';
 const router = Router();
 
 const listener = function(socket: Socket) {
@@ -43,14 +44,16 @@ const listener = function(socket: Socket) {
                 store.get(u.Session, (err: any, sess: any) => {
                   if (sess) {
 
-                    const event = {
+                    const event:IEvent = {
                       error: false,
-                      type: 1,
+                      type: 'message',
                       post: c!.post,
+                      user: u!._id,
                       time: new Date(),
                       message: 'You have a new message!',
                       seen: false
                     };
+                    
 
                     addUserEvent(u._id, event)
                     .then(() => {
