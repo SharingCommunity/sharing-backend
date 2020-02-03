@@ -120,6 +120,9 @@ UserSchema.methods = {
 //   return bcrypt.hash(user.Password, 10);
 // }
 
+// Delete after 14 days if not activity...
+UserSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 14 * 24 * 60 * 60 });
+
 const User: IUserModel = Mongoose.model<IUser, IUserModel>(
   'User',
   UserSchema,
