@@ -10,7 +10,8 @@ router.get('/:id', async (req, res) => {
   await findUserById(req.params.id)
     .populate('Posts')
     .populate('Connections')
-    .then(u => {
+    .populate('Events')
+    .then((u: any) => {
       if (u) {
         res
           .status(200)
@@ -27,7 +28,7 @@ router.get('/:id', async (req, res) => {
         );
       }
     })
-    .catch(e => {
+    .catch((e: any) => {
       res.status(400).send(
         JSON.stringify({
           error: true,
@@ -44,7 +45,8 @@ router.get('/:id', async (req, res) => {
 router.get('/:id/events', async (req, res) => {
   await findUserById(req.params.id)
     .select('Events')
-    .then(doc => {
+    .populate('Events')
+    .then((doc: any) => {
       if (doc) {
         res.status(200).send(
           JSON.stringify({
@@ -63,7 +65,7 @@ router.get('/:id/events', async (req, res) => {
         );
       }
     })
-    .catch(err => {
+    .catch((err: any) => {
       throw err;
     });
 });

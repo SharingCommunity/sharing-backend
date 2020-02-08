@@ -1,5 +1,5 @@
 // This file does all the database things...
-import Post from '../models/post.model';
+import Post, { IPostModel } from '../models/post.model';
 
 /**
  * savePost service
@@ -22,6 +22,10 @@ export const fetchPosts = (query: {} = {}) => {
   return Post.find(query).populate('Chats');
 };
 
+export const fetchPostById = (id: string) => {
+  return Post.findById(id);
+};
+
 /**
  * findPostAndUpdate
  *
@@ -31,4 +35,8 @@ export const fetchPosts = (query: {} = {}) => {
  */
 export const findPostAndUpdate = (id: string, update: any, options?: any) => {
   return Post.findByIdAndUpdate(id, update, options);
+};
+
+export const findPostAndDelete = (id: string) => {
+  return Post.findByIdAndDelete(id);
 };

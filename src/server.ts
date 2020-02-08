@@ -1,7 +1,6 @@
 // controllers
 import * as posts from './controllers/posts';
 import * as chats from './controllers/chats';
-import * as user from './controllers/users';
 import api from './controllers';
 import router from './routers';
 // modules
@@ -9,7 +8,6 @@ import express from 'express';
 import http from 'http';
 import i from 'socket.io';
 import bodyparser from 'body-parser';
-import path from 'path';
 import assert from 'assert';
 import session from 'express-session';
 import sharedSession from 'express-socket.io-session';
@@ -22,7 +20,6 @@ import helmet from 'helmet';
 import logger from './utils/logger';
 
 // Middleware and helper functions
-import { auth } from './utils/middleware';
 
 // server config
 const app = express();
@@ -33,7 +30,8 @@ require('dotenv').config();
 
 app.use(
   require('cors')({
-    origin: 'http://localhost:8080', // Allow CORS from this domain (the frontend)
+    origin: [/\.wegive\.me$/, 'http://localhost:8080'],
+    // origin: 'http://localhost:8080',
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'UPDATE', 'OPTIONS'],
     credentials: true,
   })
@@ -48,26 +46,24 @@ app.use(helmet());
 // Disable the 'x-powered-by' in our responses
 app.disable('x-powered-by');
 
-import config from '../configuration/environment';
+// import config from '../configuration/environment';
 
 const port = process.env.PORT || 3000;
-const stage = process.env.NODE_ENV!.trim();
-const host = config[stage as string].MONGO_URL;
-// User Sockets
 
-// MongoDB set up
+const dbstring = process.env.MONGO_URL!.trim();
+
 mongoose
-  .connect(config[stage as string].MONGO_URL, {
+  .connect(dbstring, {
     useNewUrlParser: true,
   })
-  .then(client => {
+  .then((client: any) => {
     app.locals.db = client.connection.db;
     logger.log(
       'info',
       `Connection to ${client.connection.db.databaseName} database successful!`
     );
   })
-  .catch(err => {
+  .catch((err: any) => {
     // console.error(`Error in connecting to database: `, err);
     logger.error('Error connecting to database', [err]);
   });
@@ -86,10 +82,10 @@ mongoose.set('useCreateIndex', true);
 // MongoDB Store initiliazation
 const store = new MongoDBStore(
   {
-    uri: config[stage as string].MONGO_URL,
+    uri: dbstring,
     collection: 'Sessions',
   },
-  err => {
+  (err: any) => {
     if (err) {
       logger.error('Error connecting Store to MongoDB => ', err);
     }
@@ -100,10 +96,12 @@ const Session = session({
   name: 'sharing.sid',
   secret: 'thisisasecret:)',
   cookie: {
-    maxAge: 60000 * 60 * 24 * 14,
-    domain: 'localhost',
+    maxAge: 60000 * 60 * 24 * 30,
+    domain: '.wegive.me',
+    // domain: 'localhost',
     secure: 'auto',
-    sameSite: true,
+    sameSite: 'lax',
+    httpOnly: true,
     path: '/',
   },
   store,
@@ -119,6 +117,8 @@ store.on('error', function(error) {
 
 // Use Sessions o
 app.use(Session);
+
+// io.origins(['*wegive.me:*']);
 
 // Share Express session with SocketIO
 io.use(sharedSession(Session));
@@ -137,31 +137,39 @@ app.use('/', (req, res) => {
     .send('<h4>Hi! Welcome to the Sharing Api</h4>');
 });
 
-io.use(function(socket, next) {
+io.use(function(socket: any, next: any) {
   const sessionID = socket.handshake.sessionID as string;
 
   if (socket.request.headers.cookie) {
     const cookies = cookie.parse(socket.request.headers.cookie);
     if (cookies['sharing.sid']) {
-      store.get(sessionID, (err, sess) => {
-        if (!err) {
-          if (sess) {
-            if (process.env.NODE_ENV === 'dev') {
-              logger.log('info', 'Client Connected!');
+      store.get(
+        sessionID,
+        (err: any, sess: Express.SessionData | null | undefined) => {
+          if (!err) {
+            if (sess) {
+              if (process.env.NODE_ENV!.trim() === 'dev') {
+                console.log('Client connected!');
+                logger.log('info', 'Client Connected!');
+              }
+              console.log('Cookie found');
+              next();
+            } else {
+              if (process.env.NODE_ENV!.trim() === 'dev') {
+                console.log('Invalid Cookie!');
+              }
+              console.log('Invalid cookie');
+              next(new Error('Cookie is expired!'));
             }
-            next();
           } else {
-            if (process.env.NODE_ENV === 'dev') {
-              console.log('Invalid Cookie!');
-            }
-            next(new Error('Cookie is expired!'));
+            next(err);
           }
-        } else {
-          next(err);
         }
-      });
+      );
     } else {
-      // console.log('No cookie sent, reload the frontend');
+      // delete session :)
+      store.destroy(sessionID);
+      console.log('No cookie sent man, destroying session :)');
       next(new Error('Not authorized man!'));
     }
   }
@@ -186,31 +194,45 @@ import * as connections from './controllers/connections';
 io.on('connection', function(socket: i.Socket) {
   // let sessionID = socket.handshake.session.id;
 
-  if (process.env.NODE_ENV === 'dev') {
+  if (process.env.NODE_ENV!.trim() === 'dev') {
     logger.log('info', 'Client Connected to socket');
   }
 
+  console.log('Client connected to socket');
+
   socket.handshake.session!.onlineStart = new Date();
+  socket.handshake.session!.online = true;
   socket.handshake.session!.socketID = socket.id;
 
   socket.handshake.session!.save((err: Error) => {
     if (err) {
+      console.log('Errror in saving session! =>', err);
       logger.error('Error in saving session! => ', err);
     }
   });
 
   socket.on('disconnect', function() {
-    // if(reason === 'io server disconnect'){
-    //   socket.connect();
-    // }
+    socket.handshake.session!.lastOnline = new Date();
+    socket.handshake.session!.online = false;
 
-    // TODO: Add lastSeen functionality
-    // Session object still avialable
-    // so update lastSeen from here...
+    socket.handshake.session!.save((err: Error) => {
+      if (err) {
+        console.log('Errror in saving session! =>', err);
+        logger.error('Error in saving session! => ', err);
+      }
+    });
     logger.info(`Disconnected client =>  ${socket.handshake.session!.id}`);
   });
-  // Now each session has it's socketID
 });
+
+/***
+ * interface IEnvConfig {
+  MONGO_URL: string;
+  PORT: number | string;
+  HOST: string;
+  [keys: string]: any;
+}
+ */
 
 // TODO: pass a central kini to carry all
 //  of these guys

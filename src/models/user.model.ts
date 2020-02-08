@@ -1,7 +1,7 @@
-import Mongoose, { Model, Schema, Document, model } from 'mongoose';
-import bcrypt from 'bcryptjs';
-import { uniqueNamesGenerator } from 'unique-names-generator';
-import { store } from '../server';
+import Mongoose, { Model, Schema, Document } from 'mongoose';
+// import bcrypt from 'bcryptjs';
+// import { uniqueNamesGenerator } from 'unique-names-generator';
+// import { store } from '../server';
 
 export interface IUserDocument extends Document {
   FirstName: string;
@@ -22,7 +22,7 @@ export interface IUser extends IUserDocument {
   Session: string;
   Posts: [];
   Events: [];
-  findSession(session: string, callback: any): void;
+  findSession(session: string | undefined, callback: any): void;
 }
 
 export interface IUserModel extends Model<IUser> {}
@@ -119,6 +119,9 @@ UserSchema.methods = {
 // function hashPassword(user: IUser): Promise<string> {
 //   return bcrypt.hash(user.Password, 10);
 // }
+
+// Delete after 14 days if not activity...
+UserSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 14 * 24 * 60 * 60 });
 
 const User: IUserModel = Mongoose.model<IUser, IUserModel>(
   'User',

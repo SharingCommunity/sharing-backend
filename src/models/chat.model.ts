@@ -26,11 +26,11 @@ const ChatSchema: Schema = new mongoose.Schema(
 
 // Add Chat to post
 
-ChatSchema.post('save', function(this: IChat, next) {
+ChatSchema.post('save', function(this: IChat, next: any) {
   Post.findOneAndUpdate(
     { _id: this.post },
     { $push: { chats: this._id } },
-    (err, doc) => {
+    (err: any, doc: any) => {
       if (!err) {
         console.log('Update successful!');
       } else {
@@ -39,5 +39,8 @@ ChatSchema.post('save', function(this: IChat, next) {
     }
   );
 });
+
+// Delete after 14 days of no activity
+ChatSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 14 * 24 * 60 * 60 });
 
 export default mongoose.model<IChat>('Chat', ChatSchema, 'Chats');

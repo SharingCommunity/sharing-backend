@@ -1,4 +1,6 @@
 import User from '../models/user.model';
+import { newEvent } from './events.service';
+import { IEvent } from '../models/event.model';
 
 /**
  * Create new User object
@@ -33,9 +35,17 @@ export const findUserAndUpdate = (id: string, update: any, options?: any) => {
  * @param id
  * @param event
  */
-export const addUserEvent = (id: string, event: any) => {
-  const update = {
-    $push: { Events: event },
-  };
-  return findUserAndUpdate(id, update);
+export const addUserEvent = (id: string, event: IEvent) => {
+
+  return newEvent(event)
+  .then((ev) => {
+    const update = {
+      $push: { Events: ev._id },
+    };
+  
+    return findUserAndUpdate(id, update);
+  })
+  .catch((err) => {
+    console.log('An Error! occurred while adding user event =>', err)
+  })
 };

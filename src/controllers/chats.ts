@@ -1,30 +1,29 @@
 import { Router } from 'express';
 import { Socket } from 'socket.io';
-import { findUserById } from '../services/users.service';
+import { findUserById, addUserEvent } from '../services/users.service';
 import { store, io } from '../server';
 import { newChat } from '../services/chats.service';
+import logger from '../utils/logger';
+import { IEvent } from '../models/event.model';
 const router = Router();
 
 const listener = function(socket: Socket) {
   // console.log("Connection from chat?"+socket.id);
-  socket.on('chat', function(chat) {
+  socket.on('chat', function(chat: any) {
     // TODO: inform particpants of new chat
     // Send a notification to other participant when there's a new chat
     // message
 
     // Use io.emit('message' , 'message text') to send to all clients including sender
 
-    console.log('Chat!', chat);
-
     const CHAT = newChat(chat);
 
     // Save...
-    CHAT.save((err, c) => {
+    CHAT.save((err: any, c: any) => {
       if (err) {
         console.log('Error saving chat => ', err);
-        socket.emit('ERROR', { error: true, message: 'Error Saving Chat' });
+        socket.emit('error', { error: true, message: 'Error Saving Chat' });
       } else {
-        console.log('New Chat => ', c);
 
         // Send the chat back to the Client after saving in the DB
         // socket.emit('chat', c);
@@ -38,16 +37,35 @@ const listener = function(socket: Socket) {
         // 5. repeat for the other participant(s).
         // 6. END
 
-        CHAT.participants.forEach(u => {
+        CHAT.participants.forEach((u: string) => {
           findUserById(u)
             .then(u => {
               if (u) {
                 store.get(u.Session, (err: any, sess: any) => {
                   if (sess) {
-                    // socket.broadcast
-                    //   .to(sess.socketID)
-                    //   .emit('post_updated', doc);
-                    io.to(sess.socketID).emit('chat', c);
+
+                    const event:IEvent = {
+                      error: false,
+                      type: 'message',
+                      post: c!.post,
+                      user: u!._id,
+                      time: new Date(),
+                      message: 'You have a new message!',
+                      seen: false
+                    };
+                    
+
+                    addUserEvent(u._id, event)
+                    .then(() => {
+                      logger.info('Event added successfully!');
+                    })
+                    .catch((err: any) => {
+                      logger.error('Error in adding event ' + err);
+                      throw err;
+                    });
+
+                    io.to(`${sess.socketID}`).emit('new_chat', c);
+                    io.to(`${sess.socketID}`).emit('new_event', event);
                   }
                 });
               }
