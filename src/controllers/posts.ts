@@ -60,55 +60,60 @@ const listener = function(socket: Socket) {
 
     findPostAndUpdate(id, query, options)
       .then(doc => {
-        try {     
+        try {
+          // I think we should just be sending errors to the user if any occur :)
 
-        // I think we should just be sending errors to the user if any occur :)
+          const event: IEvent = {
+            error: false,
+            type: 'post_activated',
+            prompt: 'Your post is active',
+            post: doc!._id,
+            user: doc!.user,
+            time: new Date(),
+            seen: false,
+            message: 'One of the posts you are involved is now active',
+          };
 
-        let event: IEvent = {
-          error: false,
-          type: 'post_activated',
-          prompt: 'Your post is active',
-          post: doc!._id,
-          user: doc!.user,
-          time: new Date(),
-          seen: false,
-          message: 'One of the posts you are involved is now active',
-        };
+          addUserEvent(doc!.user, event)
+            .then(() => {
+              try {
+                // Send 'post_updated' to all participants.
+                // but send 'post_activated' to the owner of the post
+                doc!.participants.forEach(u => {
+                  try {
+                    sendEventToUser(u, 'post_updated', doc, store, io, false);
+                  } catch (error) {
+                    logger.error('Unable to emit event to user', error);
+                  }
+                });
 
-        addUserEvent(doc!.user, event)
-          .then(() => {
-            try {
-
-          // Send 'post_updated' to all participants.
-          // but send 'post_activated' to the owner of the post
-          doc!.participants.forEach(u => {
-            try {
-              sendEventToUser(u, 'post_updated', doc, store, io, false);
-
-            } catch (error) {
-              logger.error('Unable to emit event to user', error);
-            }
-          });
-
-              sendEventToUser(doc!.user, 'post_activated', doc, store, io, true, event);
-              // Also send a 'post_updated' event to the other participants?
-              logger.info('Event added successfully!');
-            } catch (error) {
-              logger.error('Unable to emit event to user', error);
-            }
-          })
-          .catch((err: any) => {
-            logger.error('Error in saving event to dp ', err);
-            throw err;
-          });
-        // Send a notification to the user that someone has looked at his post
+                sendEventToUser(
+                  doc!.user,
+                  'post_activated',
+                  doc,
+                  store,
+                  io,
+                  true,
+                  event
+                );
+                // Also send a 'post_updated' event to the other participants?
+                logger.info('Event added successfully!');
+              } catch (error) {
+                logger.error('Unable to emit event to user', error);
+              }
+            })
+            .catch((err: any) => {
+              logger.error('Error in saving event to dp ', err);
+              throw err;
+            });
+          // Send a notification to the user that someone has looked at his post
         } catch (error) {
           logger.error('Error! ' + error);
         }
       })
       .catch((err: any) => {
-        logger.info('Couldn\'t update post :(');
-        console.log('Couldn\'t update post :(');
+        logger.info("Couldn't update post :(");
+        console.log("Couldn't update post :(");
         throw err;
       });
   });
@@ -145,7 +150,6 @@ router.get('/', async (req, res) => {
  * Fetch single post
  */
 router.get('/:id', async (req, res) => {
-
   await fetchPostById(req.params.id, JSON.parse(req.query.withChats))
     .then(post => {
       res
@@ -204,27 +208,24 @@ router.post('/finish/:id', async (req, res) => {
         })
       );
 
-
       post!.participants.forEach((u: any) => {
+        const event: IEvent = {
+          error: false,
+          type: 'post_completed',
+          prompt: 'Post Completed!',
+          post: post!._id,
+          user: u,
+          time: new Date(),
+          seen: false,
+          message: 'A post you are involved in is completed!',
+        };
 
-        
-      const event: IEvent = {
-        error: false,
-        type: 'post_completed',
-        prompt: 'Post Completed!',
-        post: post!._id,
-        user: u,
-        time: new Date(),
-        seen: false,
-        message: 'A post you are involved in is completed!',
-      };
-
-      try {
-        sendEventToUser(u, 'post_completed', post, store, io, true ,event); 
-      } catch (error) {
-        console.log('Error sent successfully!')
-        logger.error('Error emiting event to user :/', error);
-      }
+        try {
+          sendEventToUser(u, 'post_completed', post, store, io, true, event);
+        } catch (error) {
+          console.log('Error sent successfully!');
+          logger.error('Error emiting event to user :/', error);
+        }
       });
     })
     .catch(err => {

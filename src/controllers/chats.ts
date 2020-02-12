@@ -17,44 +17,43 @@ const listener = function(socket: Socket) {
         console.log('Error saving chat => ', err);
         socket.emit('error', { error: true, message: 'Error Saving Chat' });
       } else {
-
         // Send new chat back to sender...
-                // Send an chat message to the participants
+        // Send an chat message to the participants
         CHAT.participants.forEach((u: string) => {
-            sendEventToUser(u, 'new_chat', c, store, io, false);
+          sendEventToUser(u, 'new_chat', c, store, io, false);
         });
 
         // Send this new message event to the reciepient!
         const toWho = CHAT.participants.find((u: string) => {
-            u == c!.from
+          return u === c!.from;
         });
 
-          const event: IEvent = {
-            error: false,
-            type: 'message',
-            prompt: 'New Message',
-            post: c!.post,
-            user: toWho,
-            time: new Date(),
-            message: 'You have a new message!',
-            seen: false,
-          };
+        const event: IEvent = {
+          error: false,
+          type: 'message',
+          prompt: 'New Message',
+          post: c!.post,
+          user: toWho!,
+          time: new Date(),
+          message: 'You have a new message!',
+          seen: false,
+        };
 
-          addUserEvent(toWho, event)
-            .then(() => {
-              logger.info('Event added successfully!');
+        addUserEvent(toWho!, event)
+          .then(() => {
+            logger.info('Event added successfully!');
 
-              try {
-                sendEventToUser(toWho, 'new_event', event, store, io, false);
-                logger.info('Event sent successfully!');
-              } catch (error) {
-                console.log('Error sending event!');
-              }
-            })
-            .catch((err: any) => {
-              logger.error('Error in adding event ' + err);
-              throw err;
-            });
+            try {
+              sendEventToUser(toWho!, 'new_event', event, store, io, false);
+              logger.info('Event sent successfully!');
+            } catch (error) {
+              console.log('Error sending event!');
+            }
+          })
+          .catch((err: any) => {
+            logger.error('Error in adding event ' + err);
+            throw err;
+          });
       }
     });
   });
