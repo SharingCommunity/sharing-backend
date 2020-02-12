@@ -3,7 +3,13 @@ import Mongoose, { Schema, Document } from 'mongoose';
 
 export interface IEvent {
   error: boolean;
-  type: 'message' | 'connection' | 'active_post';
+  type:
+    | 'message'
+    | 'connection'
+    | 'post_activated'
+    | 'post_updated'
+    | 'post_completed';
+  prompt: string;
   message: string;
   post: string;
   user: string;
@@ -32,6 +38,6 @@ const EventSchema: Schema = new Mongoose.Schema(
   { timestamps: true }
 );
 
-EventSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 4 * 60 * 60 });
+EventSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 24 * 60 * 60 });
 
 export default Mongoose.model<IEventModel>('Event', EventSchema, 'Events');
