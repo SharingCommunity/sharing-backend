@@ -19,11 +19,15 @@ export const newPost = (data: any) => {
  * @param query
  */
 export const fetchPosts = (query: {} = {}) => {
-  return Post.find(query).populate('Chats');
+  return Post.find(query).populate('chats');
 };
 
-export const fetchPostById = (id: string) => {
-  return Post.findById(id);
+export const fetchPostById = (id: string, withChats: boolean = false) => {
+  if(withChats){
+    return Post.findById(id).populate('chats');
+  } else {
+    return Post.findById(id);
+  }
 };
 
 /**
